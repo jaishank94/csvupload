@@ -2,7 +2,6 @@ const express = require("express");
 const {
   createGame,
   getAllGames,
-  comment,
   saveGame,
   deleteGame,
   getGamer,
@@ -14,7 +13,6 @@ const router = express.Router();
 
 router.post("/createGame", authUser, createGame);
 router.get("/getAllGames", getAllGames);
-router.put("/comment", comment);
 router.put("/saveGame/:id", authUser, saveGame);
 router.delete("/deleteGame/:id", authUser, deleteGame);
 router.post("/searchGame/:searchTerm", searchGame);
