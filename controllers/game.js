@@ -51,6 +51,26 @@ exports.getGamer = async (req, res) => {
 
 exports.saveGame = async (req, res) => {
   try {
+    const { infos } = req.body;
+    const gameId = req.params.id;
+
+    const updated = await Game.findByIdAndUpdate(
+      gameId,
+      {
+        name: infos.name,
+      },
+      {
+        picture: infos.picture,
+      }
+    );
+    res.json(updated.details);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.saveGamer = async (req, res) => {
+  try {
     const gameId = req.params.id;
     const user = await User.findById(req.user.id);
     const game = await Game.findById(gameId);
