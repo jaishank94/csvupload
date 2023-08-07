@@ -4,6 +4,7 @@ const User = require("../models/User");
 exports.createGame = async (req, res) => {
   try {
     const game = await new Game(req.body).save();
+    await game.populate("user", "first_name last_name cover picture username");
     res.json(game);
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -51,19 +52,29 @@ exports.getGamer = async (req, res) => {
 
 exports.saveGame = async (req, res) => {
   try {
-    const { infos } = req.body;
     const gameId = req.params.id;
-
-    const updated = await Game.findByIdAndUpdate(
-      gameId,
-      {
-        name: infos.name,
-      },
-      {
-        picture: infos.picture,
-      }
+    const user = await User.findById(req.user.id);
+    const check = user?.savedGames.find(
+      (game) => game.game.toString() == gameId
     );
-    res.json(updated.details);
+    if (check) {
+      await User.findByIdAndUpdate(req.user.id, {
+        $pull: {
+          savedGames: {
+            _id: check._id,
+          },
+        },
+      });
+    } else {
+      await User.findByIdAndUpdate(req.user.id, {
+        $push: {
+          savedGames: {
+            game: gameId,
+            savedAt: new Date(),
+          },
+        },
+      });
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

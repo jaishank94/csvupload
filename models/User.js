@@ -149,6 +149,18 @@ const userSchema = mongoose.Schema(
         },
       },
     ],
+    savedGames: [
+      {
+        game: {
+          type: ObjectId,
+          ref: "Game",
+        },
+        savedAt: {
+          type: Date,
+          required: true,
+        },
+      },
+    ],
   },
   {
     timestamps: true,

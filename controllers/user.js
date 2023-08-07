@@ -13,6 +13,7 @@ const { generateToken } = require("../helpers/tokens");
 const { sendVerificationEmail, sendResetCode } = require("../helpers/mailer");
 const generateCode = require("../helpers/generateCode");
 const mongoose = require("mongoose");
+const Game = require("../models/Game");
 exports.register = async (req, res) => {
   try {
     const {
@@ -274,8 +275,14 @@ exports.getProfile = async (req, res) => {
         "first_name last_name picture username commentAt"
       )
       .sort({ createdAt: -1 });
+
+    const games = await Game.find({ user: profile._id })
+      .populate("user")
+      .sort({ createdAt: -1 });
+
     await profile.populate("friends", "first_name last_name username picture");
-    res.json({ ...profile.toObject(), posts, friendship });
+
+    res.json({ ...profile.toObject(), games, posts, friendship });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
