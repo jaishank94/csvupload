@@ -23,6 +23,10 @@ const gameSchema = new mongoose.Schema({
     type: String,
     default: "ACTIVE",
   },
+  numberOfPayers: {
+    type: Number,
+    required: true,
+  },
   Gamers: [
     {
       user: {
