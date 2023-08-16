@@ -26,7 +26,7 @@ exports.getAllAuctions = async (req, res) => {
     //     .limit(10);
     // });
     // const followingPosts = await (await Promise.all(promises)).flat();
-    const allAuctions = await (await Promise.all(promises)).flat();
+    const allAuctions = [];
 
     const { status } = req.data;
 
