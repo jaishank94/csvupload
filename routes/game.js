@@ -13,7 +13,7 @@ const { authUser } = require("../middlwares/auth");
 const router = express.Router();
 
 router.post("/createGame", authUser, createGame);
-router.get("/getAllGames", getAllGames);
+router.get("/getAllGames/:status", getAllGames);
 router.put("/saveGame/:id", authUser, saveGame);
 router.put("/saveGamer/:id", authUser, saveGamer);
 router.delete("/deleteGame/:id", authUser, deleteGame);
