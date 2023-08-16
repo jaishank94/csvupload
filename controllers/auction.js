@@ -28,7 +28,7 @@ exports.getAllAuctions = async (req, res) => {
     // const followingPosts = await (await Promise.all(promises)).flat();
     const allAuctions = [];
 
-    const { status } = req.data;
+    const { status } = req.body;
 
     const auctions = await Auction.find({ user: req.user.id, status })
       .populate("user", "first_name last_name picture username cover")
