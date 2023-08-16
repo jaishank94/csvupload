@@ -30,7 +30,7 @@ exports.getAllAuctions = async (req, res) => {
 
     const { status } = req.body;
 
-    const auctions = await Auction.find({ user: req.user.id, status })
+    const auctions = await Auction.find({ status })
       .populate("user", "first_name last_name picture username cover")
       .populate("game", "name picture")
       .populate("bids.bidBy", "first_name last_name picture username")
