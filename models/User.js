@@ -161,6 +161,16 @@ const userSchema = mongoose.Schema(
         },
       },
     ],
+    address: String,
+    balance: Number,
+    earnings: Number,
+    transactions: [
+      {
+        type: String, // 'deposit' or 'withdrawal'
+        amount: Number,
+        timestamp: Date,
+      },
+    ],
   },
   {
     timestamps: true,
