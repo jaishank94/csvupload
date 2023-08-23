@@ -4,7 +4,7 @@ const User = require("../models/User");
 
 const connectWallet = async (address) => {
   const provider = new WalletConnectProvider({
-    infuraId: "YOUR_INFURA_PROJECT_ID",
+    infuraId: "5b59cf886314aebee5a1d12279832235",
   });
 
   await provider.enable();
