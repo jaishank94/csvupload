@@ -65,6 +65,24 @@ const auctionSchema = new mongoose.Schema(
         },
       },
     ],
+    eligibleBids: [
+      {
+        amount: {
+          type: Number,
+        },
+        image: {
+          type: String,
+        },
+        bidBy: {
+          type: ObjectId,
+          ref: "User",
+        },
+        bidAt: {
+          type: Date,
+          required: true,
+        },
+      },
+    ],
   },
   {
     timestamps: true,

@@ -14,6 +14,10 @@ app.use(
     useTempFiles: true,
   })
 );
+
+// Start the cron job
+require("./crons/auctionCron.js");
+
 //routes
 readdirSync("./routes").map((r) => app.use("/", require("./routes/" + r)));
 
