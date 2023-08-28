@@ -1,5 +1,6 @@
 const Auction = require("../models/Auction");
 const User = require("../models/User");
+const Game = require("../models/Game");
 
 exports.createAuction = async (req, res) => {
   try {
@@ -107,5 +108,45 @@ exports.deleteAuction = async (req, res) => {
     res.json({ status: "ok" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
+  }
+};
+
+exports.searchAuctions = async (req, res) => {
+  try {
+    const {
+      id,
+      playerId,
+      expiryTime,
+      priceToEnter,
+      status,
+      gameId,
+      page,
+      limit,
+    } = req.query;
+
+    const user = await User.findById(playerId);
+    const game = await Game.findById(gameId);
+
+    const query = {};
+
+    if (id) query._id = id;
+    if (playerId) query.user = user;
+    if (expiryTime) query.dateTime = new Date(expiryTime);
+    if (priceToEnter) query.basePrice = priceToEnter;
+    if (status) query.status = status;
+    if (gameId) query.game = game;
+
+    const options = {
+      page: parseInt(page, 10) || 1,
+      limit: parseInt(limit, 10) || 10,
+    };
+
+    const auctions = await Auction.paginate(query, options);
+
+    res.json(auctions);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "An error occurred while searching auctions." });
   }
 };
