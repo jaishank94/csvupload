@@ -1,6 +1,7 @@
 const Auction = require("../models/Auction");
 const User = require("../models/User");
 const Game = require("../models/Game");
+const Rating = require("../models/Rating");
 
 exports.createAuction = async (req, res) => {
   try {
@@ -122,20 +123,45 @@ exports.searchAuctions = async (req, res) => {
       gameId,
       page,
       limit,
+      sortBy,
+      gender,
     } = req.query;
 
     const user = await User.findById(playerId);
     const game = await Game.findById(gameId);
 
-    const query = {};
+    const query = Auction.find();
 
-    if (id) query._id = id;
-    if (playerId) query.user = user;
-    if (expiryTime) query.dateTime = new Date(expiryTime);
-    if (priceToEnter) query.basePrice = priceToEnter;
-    if (status) query.status = status;
-    if (gameId) query.game = game;
+    // Apply filters
+    if (playerId) {
+      query = query.where("playerId").equals(user);
+    }
+    if (expiryTime) {
+      query = query.where("expiryTime").equals(new Date(expiryTime));
+    }
+    if (priceToEnter) {
+      query = query.where("priceToEnter").equals(priceToEnter);
+    }
+    if (status) {
+      query = query.where("status").equals(status);
+    }
+    if (gameId) {
+      query = query.where("gameId").equals(game);
+    }
+    if (gender) {
+      query = query.where("gender").equals(gender);
+    }
 
+    // Apply sorting
+    if (sortBy === "highestRated") {
+      query = query.sort("-averageRating");
+    } else if (sortBy === "lowestBasePrice") {
+      query = query.sort("basePrice");
+    } else if (sortBy === "highestBasePrice") {
+      query = query.sort("-basePrice");
+    }
+
+    // Pagination
     const options = {
       page: parseInt(page, 10) || 1,
       limit: parseInt(limit, 10) || 10,
@@ -145,8 +171,41 @@ exports.searchAuctions = async (req, res) => {
 
     res.json(auctions);
   } catch (error) {
+    console.error(err);
     res
       .status(500)
       .json({ error: "An error occurred while searching auctions." });
+  }
+};
+
+// Rate an auction
+exports.createRating = async (req, res) => {
+  try {
+    const { userId, auctionId, rating } = req.body;
+
+    // Check if the user has already rated this auction
+    const existingRating = await Rating.findOne({
+      user: userId,
+      auction: auctionId,
+    });
+
+    if (existingRating) {
+      return res
+        .status(400)
+        .json({ error: "User has already rated this auction." });
+    }
+
+    const newRating = new Rating({ user: userId, auction: auctionId, rating });
+    await newRating.save();
+
+    // Update the auction's ratings array
+    await Auction.findByIdAndUpdate(auctionId, {
+      $push: { ratings: newRating._id },
+    });
+
+    res.status(201).json(newRating);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
   }
 };

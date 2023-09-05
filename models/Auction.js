@@ -32,6 +32,10 @@ const auctionSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    gender: {
+      type: String,
+      required: true,
+    },
     numberOfPayers: {
       type: Number,
       required: true,
@@ -65,6 +69,7 @@ const auctionSchema = new mongoose.Schema(
         },
       },
     ],
+    ratings: [{ type: ObjectId, ref: "Rating" }],
     eligibleBids: [
       {
         amount: {
