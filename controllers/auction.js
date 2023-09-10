@@ -133,6 +133,9 @@ exports.searchAuctions = async (req, res) => {
     const query = Auction.find();
 
     // Apply filters
+    if (id) {
+      query = query.where("_id").equals(id);
+    }
     if (playerId) {
       query = query.where("playerId").equals(user);
     }
@@ -204,6 +207,71 @@ exports.createRating = async (req, res) => {
     });
 
     res.status(201).json(newRating);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.getAuctionsByUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const auctions = await Auction.find({ user: userId });
+    res.json(auctions);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.updateAuction = async (req, res) => {
+  try {
+    const { auctionId } = req.params;
+    const { userId } = req.user; // Get the logged-in user's ID from the JWT payload
+
+    // Check if the logged-in user is the creator of the auction
+    const auction = await Auction.findById(auctionId);
+    if (auction.user.toString() !== userId) {
+      return res
+        .status(403)
+        .json({ error: "You do not have permission to edit this auction" });
+    }
+
+    // Perform the update
+    const updatedAuction = await Auction.findByIdAndUpdate(
+      auctionId,
+      req.body,
+      { new: true }
+    );
+
+    res.json(updatedAuction);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.cancelAuction = async (req, res) => {
+  try {
+    const { auctionId } = req.params;
+    const { userId } = req.user; // Get the logged-in user's ID from the JWT payload
+
+    // Check if the logged-in user is the creator of the auction
+    const auction = await Auction.findById(auctionId);
+    if (auction.user.toString() !== userId) {
+      return res
+        .status(403)
+        .json({ error: "You do not have permission to cancel this auction" });
+    }
+
+    // Perform the cancellation
+    const updatedAuction = await Auction.findByIdAndUpdate(
+      auctionId,
+      { status: "Cancelled" },
+      { new: true }
+    );
+
+    res.json(updatedAuction);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
