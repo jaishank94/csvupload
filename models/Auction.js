@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const mongoosePaginate = require("mongoose-paginate-v2");
 
 const { ObjectId } = mongoose.Schema;
 
@@ -93,5 +94,8 @@ const auctionSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Apply the pagination plugin
+auctionSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model("Auction", auctionSchema);
