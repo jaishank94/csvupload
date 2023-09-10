@@ -19,7 +19,7 @@ router.post("/createAuction", authUser, createAuction);
 router.post("/getAllAuctions", authUser, getAllAuctions);
 router.put("/bid", authUser, bid);
 router.put("/saveAuction/:id", authUser, saveAuction);
-router.get("//auctions/by-user/:userId", getAuctionsByUser);
+router.get("/auctions/by-user/:userId", getAuctionsByUser);
 router.put("/auctions/:auctionId", authUser, updateAuction);
 router.put("/auctions/cancel/:auctionId", authUser, cancelAuction);
 router.get("/searchAuctions", authUser, searchAuctions);
