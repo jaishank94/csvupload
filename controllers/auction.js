@@ -219,7 +219,9 @@ exports.getAuctionsByUser = async (req, res) => {
     const { userId } = req.params;
     const auctions = await Auction.find({
       user: mongoose.Types.ObjectId(userId),
-    });
+    })
+      .populate("user", "name email") // Specify the fields you want to include from the User collection
+      .populate("game", "title description");
     res.json(auctions);
   } catch (err) {
     console.error(err);
