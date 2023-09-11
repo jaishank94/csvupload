@@ -2,6 +2,7 @@ const Auction = require("../models/Auction");
 const User = require("../models/User");
 const Game = require("../models/Game");
 const Rating = require("../models/Rating");
+const mongoose = require("mongoose");
 
 exports.createAuction = async (req, res) => {
   try {
@@ -216,7 +217,9 @@ exports.createRating = async (req, res) => {
 exports.getAuctionsByUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    const auctions = await Auction.find({ user: userId });
+    const auctions = await Auction.find({
+      user: mongoose.Types.ObjectId(userId),
+    });
     res.json(auctions);
   } catch (err) {
     console.error(err);
