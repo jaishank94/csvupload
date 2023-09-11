@@ -52,6 +52,31 @@ exports.getAllAuctions = async (req, res) => {
 exports.bid = async (req, res) => {
   try {
     const { amount, image, auctionId } = req.body;
+    const { userId } = req.user;
+
+    const auction = await Auction.findById(auctionId);
+    if (!auction) {
+      return res.status(404).json({ error: "Auction not found" });
+    }
+
+    if (auction.status !== "ACTIVE") {
+      return res.status(400).json({ error: "Auction is not in progress" });
+    }
+
+    const user = await User.findById(userId);
+
+    if (user.balance < amount) {
+      return res.status(400).json({ error: "Insufficient balance" });
+    }
+
+    // Block the bid amount in the user's wallet
+    user.balance -= amount;
+    user.blockedBalance += amount;
+
+    // Save the user's updated balances
+    await user.save();
+
+    // Add the bid to the auction's bids array
     let newBids = await Auction.findByIdAndUpdate(
       auctionId,
       {
@@ -71,6 +96,16 @@ exports.bid = async (req, res) => {
     res.json(newBids.bids);
   } catch (error) {
     return res.status(500).json({ message: error.message });
+  }
+};
+
+// Function to release blocked bids
+exports.releaseBids = async (bids) => {
+  for (const bid of bids) {
+    const user = await User.findById(bid.user);
+    user.blockedBalance -= bid.amount;
+    user.balance += bid.amount;
+    await user.save();
   }
 };
 
@@ -263,10 +298,21 @@ exports.cancelAuction = async (req, res) => {
 
     // Check if the logged-in user is the creator of the auction
     const auction = await Auction.findById(auctionId);
+
     if (auction.user.toString() !== userId) {
       return res
         .status(403)
         .json({ error: "You do not have permission to cancel this auction" });
+    }
+
+    if (!auction) {
+      return res.status(404).json({ error: "Auction not found" });
+    }
+
+    // Check if the auction is in progress
+    if (auction.status === "ACTIVE") {
+      // Release blocked bids if the auction is in progress
+      await this.releaseBids(auction.bids);
     }
 
     // Perform the cancellation
