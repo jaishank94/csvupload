@@ -221,7 +221,7 @@ exports.getAuctionsByUser = async (req, res) => {
       user: mongoose.Types.ObjectId(userId),
     })
       .populate("user", "name email") // Specify the fields you want to include from the User collection
-      .populate("game", "title description");
+      .populate("game", "title description status");
     res.json(auctions);
   } catch (err) {
     console.error(err);
