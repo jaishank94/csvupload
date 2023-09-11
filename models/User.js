@@ -162,7 +162,10 @@ const userSchema = mongoose.Schema(
       },
     ],
     address: String,
-    balance: Number,
+    balance: {
+      type: Number,
+      default: 0,
+    },
     earnings: Number,
     transactions: [
       {
