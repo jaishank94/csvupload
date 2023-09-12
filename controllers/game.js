@@ -52,6 +52,7 @@ exports.getGamers = async (req, res) => {
           _id: 0, // Exclude the _id field if you don't need it
           username: { $arrayElemAt: ["$userDetails.username", 0] }, // Assuming "username" is a field in the User schema
           email: { $arrayElemAt: ["$userDetails.email", 0] }, // Assuming "email" is a field in the User schema
+          picture: { $arrayElemAt: ["$userDetails.picture", 0] }, // Assuming "picture" is a field in the User schema
           first_name: { $arrayElemAt: ["$userDetails.first_name", 0] }, // Assuming "first_name" is a field in the User schema
           last_name: { $arrayElemAt: ["$userDetails.last_name", 0] }, // Assuming "last_name" is a field in the User schema
         },
