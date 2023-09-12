@@ -166,7 +166,7 @@ exports.searchAuctions = async (req, res) => {
     const user = await User.findById(playerId);
     const game = await Game.findById(gameId);
 
-    const query = Auction.find();
+    let query = Auction.find();
 
     // Apply filters
     if (id) {
@@ -210,7 +210,7 @@ exports.searchAuctions = async (req, res) => {
 
     res.json(auctions);
   } catch (error) {
-    console.error(err);
+    console.error(error);
     res
       .status(500)
       .json({ error: "An error occurred while searching auctions." });
@@ -294,12 +294,13 @@ exports.updateAuction = async (req, res) => {
 exports.cancelAuction = async (req, res) => {
   try {
     const { auctionId } = req.params;
-    const { userId } = req.user; // Get the logged-in user's ID from the JWT payload
+    const { id } = req.user; // Get the logged-in user's ID from the JWT payload
+    console.log("User", req.user);
 
     // Check if the logged-in user is the creator of the auction
     const auction = await Auction.findById(auctionId);
 
-    if (auction.user.toString() !== userId) {
+    if (auction.user.toString() !== id) {
       return res
         .status(403)
         .json({ error: "You do not have permission to cancel this auction" });
