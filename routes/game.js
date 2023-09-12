@@ -5,7 +5,8 @@ const {
   saveGame,
   saveGamer,
   deleteGame,
-  getGamer,
+  getGamers,
+  getGameDetails,
   searchGame,
 } = require("../controllers/game");
 const { authUser } = require("../middlwares/auth");
@@ -18,6 +19,7 @@ router.put("/saveGame/:id", authUser, saveGame);
 router.put("/saveGamer/:id", authUser, saveGamer);
 router.delete("/deleteGame/:id", authUser, deleteGame);
 router.post("/searchGame/:searchTerm", searchGame);
-router.get("/getGamer/:gameId", getGamer);
+router.get("/getGameDetails/:gameId", getGameDetails);
+router.get("/getGamers", getGamers);
 
 module.exports = router;
