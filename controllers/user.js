@@ -271,16 +271,36 @@ exports.getProfile = async (req, res) => {
     }
 
     const posts = await Post.find({ user: profile._id })
-      .populate("user")
+      .populate("user", "first_name last_name picture username cover")
       .populate(
         "comments.commentBy",
         "first_name last_name picture username commentAt"
       )
       .sort({ createdAt: -1 });
 
-    const games = await Game.find({ user: profile._id })
-      .populate("user")
-      .sort({ createdAt: -1 });
+    const games = await Game.aggregate([
+      {
+        $unwind: "$Gamers", // Unwind the Gamers array
+      },
+      {
+        $lookup: {
+          from: "users", // Assuming your user collection is named "users"
+          localField: "Gamers.user",
+          foreignField: "_id",
+          as: "playerInfo", // Alias for the user information
+        },
+      },
+      {
+        $project: {
+          _id: 0, // Exclude the _id field if you don't need it
+          gameName: "$name",
+          playerName: {
+            $arrayElemAt: ["$playerInfo.name", 0], // Assuming the user has a "name" field
+          },
+          playerSavedAt: "$Gamers.savedAt",
+        },
+      },
+    ]);
 
     await profile.populate("friends", "first_name last_name username picture");
 

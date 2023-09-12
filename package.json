@@ -23,7 +23,7 @@
     "mongoose-paginate-v2": "^1.7.31",
     "node-cron": "^3.0.2",
     "nodemailer": "^6.7.2",
-    "nodemon": "^2.0.15",
+    "nodemon": "^2.0.22",
     "walletconnect": "^1.7.8",
     "web3": "^4.1.1"
   }
