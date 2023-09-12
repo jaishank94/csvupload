@@ -33,7 +33,55 @@ exports.searchGame = async (req, res) => {
   }
 };
 
-exports.getGamer = async (req, res) => {
+exports.getGamers = async (req, res) => {
+  try {
+    const gamers = await Game.aggregate([
+      {
+        $unwind: "$Gamers", // Unwind the Gamers array
+      },
+      {
+        $lookup: {
+          from: "User", // Assuming your user collection is named "users"
+          localField: "Gamers.user",
+          foreignField: "_id",
+          as: "userDetails", // Alias for the user details
+        },
+      },
+      {
+        $project: {
+          _id: 0, // Exclude the _id field if you don't need it
+          username: { $arrayElemAt: ["$userDetails.username", 0] }, // Assuming "username" is a field in the User schema
+          email: { $arrayElemAt: ["$userDetails.email", 0] }, // Assuming "email" is a field in the User schema
+          picture: { $arrayElemAt: ["$userDetails.picture", 0] }, // Assuming "picture" is a field in the User schema
+          first_name: { $arrayElemAt: ["$userDetails.first_name", 0] }, // Assuming "first_name" is a field in the User schema
+          last_name: { $arrayElemAt: ["$userDetails.last_name", 0] }, // Assuming "last_name" is a field in the User schema
+        },
+      },
+      {
+        $group: {
+          _id: "$username", // Group by username to get unique gamers
+          userDetails: { $first: "$$ROOT" }, // Keep the user details for the first occurrence of each username
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: "$userDetails", // Replace the root with user details
+        },
+      },
+    ]);
+
+    if (!gamers) {
+      return res.status(400).json({
+        message: "Gamers does not exists.",
+      });
+    }
+    res.json({ gamers });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getGameDetails = async (req, res) => {
   try {
     const { gameId } = req.params;
 

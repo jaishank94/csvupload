@@ -319,7 +319,7 @@ exports.cancelAuction = async (req, res) => {
     // Perform the cancellation
     const updatedAuction = await Auction.findByIdAndUpdate(
       auctionId,
-      { status: "Cancelled" },
+      { status: "CANCELLED" },
       { new: true }
     );
 

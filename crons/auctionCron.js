@@ -8,11 +8,11 @@ const updateAuctionStatus = async () => {
   try {
     const expiredAuctions = await Auction.find({
       dateTime: { $lte: currentTime },
-      status: { $ne: "Expired" },
+      status: { $ne: "EXPIRED" },
     });
 
     expiredAuctions.forEach(async (auction) => {
-      auction.status = "Expired";
+      auction.status = "EXPIRED";
 
       auction.bids.sort((a, b) => b.amount - a.amount);
       auction.eligibleBids = auction.bids.slice(0, auction.numberOfPayers);
