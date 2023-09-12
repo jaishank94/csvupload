@@ -51,8 +51,8 @@ exports.getAllAuctions = async (req, res) => {
 
 exports.bid = async (req, res) => {
   try {
-    const { amount, image, auctionId } = req.body;
-    const { userId } = req.user;
+    const { amount, image, auctionId, userId } = req.body;
+    // const { userId } = req.user;
 
     const auction = await Auction.findById(auctionId);
     if (!auction) {
@@ -65,7 +65,7 @@ exports.bid = async (req, res) => {
 
     const user = await User.findById(userId);
 
-    if (user.balance < amount) {
+    if (!user.balance || user?.balance < amount) {
       return res.status(400).json({ error: "Insufficient balance" });
     }
 
