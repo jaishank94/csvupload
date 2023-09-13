@@ -37,6 +37,7 @@ exports.getAllAuctions = async (req, res) => {
       .populate("user", "first_name last_name picture username cover")
       .populate("game", "name picture")
       .populate("bids.bidBy", "first_name last_name picture username")
+      .populate("eligibleBids.bidBy", "first_name last_name picture username")
       .sort({ createdAt: -1 })
       .limit(10);
     allAuctions.push(...[...auctions]);
