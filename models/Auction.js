@@ -35,7 +35,7 @@ const auctionSchema = new mongoose.Schema(
     },
     gender: {
       type: String,
-      required: true,
+      // required: true,
     },
     numberOfPayers: {
       type: Number,
