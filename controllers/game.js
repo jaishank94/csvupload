@@ -41,7 +41,7 @@ exports.getGamers = async (req, res) => {
       },
       {
         $lookup: {
-          from: "User", // Assuming your user collection is named "users"
+          from: "users", // Assuming your user collection is named "users"
           localField: "Gamers.user",
           foreignField: "_id",
           as: "userDetails", // Alias for the user details
