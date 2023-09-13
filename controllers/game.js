@@ -165,3 +165,51 @@ exports.deleteGame = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+
+// Save a game played by the user
+exports.saveGamerInfo = async (req, res) => {
+  try {
+    // const { userId } = req.user;
+    const { gameId, userId } = req.body;
+
+    // Find the user
+    const user = await User.findById(userId);
+
+    // Check if the game already exists in the user's played games
+    if (user.savedGames.some((game) => game.game.equals(gameId))) {
+      return res.status(400).json({ error: "Game already saved" });
+    }
+
+    // Create a new game entry for the user
+    user.savedGames.push({ game: gameId, savedAt: new Date() });
+    await user.save();
+
+    res.json({ message: "Game saved successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Retrieve the list of games played by the user
+exports.getUserGames = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Find the user and populate the savedGames with game details
+    const user = await User.findById(userId).populate({
+      path: "savedGames.game",
+      model: "Game",
+    });
+
+    const userGames = user.savedGames.map((entry) => ({
+      game: entry.game,
+      savedAt: entry.savedAt,
+    }));
+
+    res.json(userGames);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};

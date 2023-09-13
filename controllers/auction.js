@@ -330,3 +330,20 @@ exports.cancelAuction = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+// Get a list of auctions where the user has placed bids
+exports.getUserBids = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Find auctions where the user's ID exists in the bids array
+    const auctionsWithUserBids = await Auction.find({
+      "bids.user": userId,
+    });
+
+    res.json(auctionsWithUserBids);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};

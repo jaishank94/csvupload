@@ -10,6 +10,7 @@ const {
   updateAuction,
   getAuctionsByUser,
   cancelAuction,
+  getUserBids,
 } = require("../controllers/auction");
 const { authUser } = require("../middlwares/auth");
 
@@ -25,5 +26,6 @@ router.put("/auctions/cancel/:auctionId", authUser, cancelAuction);
 router.get("/searchAuctions", searchAuctions);
 router.post("/auctions/createRating", authUser, createRating);
 router.delete("/deleteAuction/:id", authUser, deleteAuction);
+router.get("/auctions/my-bids/:userId", authUser, getUserBids);
 
 module.exports = router;

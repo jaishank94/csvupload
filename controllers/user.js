@@ -14,6 +14,9 @@ const { sendVerificationEmail, sendResetCode } = require("../helpers/mailer");
 const generateCode = require("../helpers/generateCode");
 const mongoose = require("mongoose");
 const Game = require("../models/Game");
+const passport = require("passport");
+const dotenv = require("dotenv");
+
 exports.register = async (req, res) => {
   try {
     const {
@@ -26,6 +29,7 @@ exports.register = async (req, res) => {
       bMonth,
       bDay,
       gender,
+      savedGames,
     } = req.body;
 
     if (!validateEmail(email)) {
@@ -93,6 +97,64 @@ exports.register = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Handle Google login
+exports.googleLogin = async (req, res) => {
+  try {
+    const { id_token, googleId } = req.body;
+
+    // Verify the Google ID token using Google's public keys
+    // const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID); // Create an instance of OAuth2Client with your client ID
+    // async function verify() {
+    //   const ticket = await client.verifyIdToken({
+    //     idToken: id_token,
+    //     audience: process.env.GOOGLE_CLIENT_ID, // Ensure it matches your client ID
+    //   });
+    //   const payload = ticket.getPayload();
+    //   const userId = payload.sub;
+
+    // Check if the user is already registered or create a new user account
+    const user = await User.findOne({ googleId: googleId });
+    if (!user) {
+      const newUser = new User({
+        first_name,
+        last_name,
+        email,
+        username,
+        bYear,
+        bMonth,
+        bDay,
+        gender,
+        googleId,
+        savedGames,
+      });
+      await newUser.save();
+    }
+
+    // Generate a JWT token for authentication
+
+    const token = generateToken({ id: user._id.toString() }, "7d");
+
+    res.send({
+      id: user._id,
+      username: user.username,
+      picture: user.picture,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      gender: user.gender,
+      balance: user.balance,
+      token: token,
+      verified: user.verified,
+    });
+    // verify().catch((error) => {
+    //   console.error("Google login verification failed:", error);
+    //   res.status(401).json({ error: "Google login verification failed" });
+    // });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 exports.activateAccount = async (req, res) => {
   try {
     const validUser = req.user.id;

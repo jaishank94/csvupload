@@ -8,6 +8,8 @@ const {
   getGamers,
   getGameDetails,
   searchGame,
+  saveGamerInfo,
+  getUserGames,
 } = require("../controllers/game");
 const { authUser } = require("../middlwares/auth");
 
@@ -17,6 +19,8 @@ router.post("/createGame", authUser, createGame);
 router.get("/getAllGames", getAllGames);
 router.put("/saveGame/:id", authUser, saveGame);
 router.put("/saveGamer/:id", authUser, saveGamer);
+router.post("/gamers/save", authUser, saveGamerInfo);
+router.get("/gamers/:userId", authUser, getUserGames);
 router.delete("/deleteGame/:id", authUser, deleteGame);
 router.post("/searchGame/:searchTerm", searchGame);
 router.get("/getGameDetails/:gameId", getGameDetails);

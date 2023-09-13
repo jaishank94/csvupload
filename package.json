@@ -24,6 +24,7 @@
     "node-cron": "^3.0.2",
     "nodemailer": "^6.7.2",
     "nodemon": "^2.0.22",
+    "passport": "^0.6.0",
     "walletconnect": "^1.7.8",
     "web3": "^4.1.1"
   }
