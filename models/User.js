@@ -31,7 +31,7 @@ const userSchema = mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, "password is required"],
+      // required: [true, "password is required"],
     },
     picture: {
       type: String,
@@ -162,6 +162,7 @@ const userSchema = mongoose.Schema(
       },
     ],
     address: String,
+    googleId: String,
     balance: {
       type: Number,
       default: 0,
