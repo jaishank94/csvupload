@@ -33,7 +33,40 @@ exports.getAllAuctions = async (req, res) => {
 
     const { status } = req.body;
 
-    const auctions = await Auction.find({ status })
+    const auctions = await Auction.find()
+      .populate("user", "first_name last_name picture username cover")
+      .populate("game", "name picture")
+      .populate("bids.bidBy", "first_name last_name picture username")
+      .populate("eligibleBids.bidBy", "first_name last_name picture username")
+      .sort({ createdAt: -1 })
+      .limit(10);
+    allAuctions.push(...[...auctions]);
+    allAuctions.sort((a, b) => {
+      return b.createdAt - a.createdAt;
+    });
+    res.json(allAuctions);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getActiveAuctions = async (req, res) => {
+  try {
+    // const followingTemp = await User.findById(req.user.id).select("following");
+    // const following = followingTemp.following;
+    // const promises = following.map((user) => {
+    //   return Auction.find({ user: user })
+    //     .populate("user", "first_name last_name picture username cover")
+    //     .populate("comments.commentBy", "first_name last_name picture username")
+    //     .sort({ createdAt: -1 })
+    //     .limit(10);
+    // });
+    // const followingPosts = await (await Promise.all(promises)).flat();
+    const allAuctions = [];
+
+    const { status } = req.body;
+
+    const auctions = await Auction.find({status: "ACTIVE"})
       .populate("user", "first_name last_name picture username cover")
       .populate("game", "name picture")
       .populate("bids.bidBy", "first_name last_name picture username")
@@ -57,17 +90,17 @@ exports.bid = async (req, res) => {
 
     const auction = await Auction.findById(auctionId);
     if (!auction) {
-      return res.status(404).json({ error: "Auction not found" });
+      return res.status(201).json({ error: "Auction not found" });
     }
 
     if (auction.status !== "ACTIVE") {
-      return res.status(400).json({ error: "Auction is not in progress" });
+      return res.status(201).json({ error: "Auction is not in progress" });
     }
 
     const user = await User.findById(userId);
 
     if (!user.balance || user?.balance < amount) {
-      return res.status(400).json({ error: "Insufficient balance" });
+      return res.status(201).json({ error: "Insufficient balance" });
     }
 
     // Block the bid amount in the user's wallet
@@ -167,7 +200,8 @@ exports.searchAuctions = async (req, res) => {
     const user = await User.findById(playerId);
     const game = await Game.findById(gameId);
 
-    let query = Auction.find();
+    let query = Auction.find({status: "ACTIVE"})
+    .populate("user", "first_name last_name picture username cover")
 
     // Apply filters
     if (id) {

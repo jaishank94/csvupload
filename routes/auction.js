@@ -2,6 +2,7 @@ const express = require("express");
 const {
   createAuction,
   getAllAuctions,
+  getActiveAuctions,
   bid,
   saveAuction,
   deleteAuction,
@@ -17,6 +18,7 @@ const router = express.Router();
 
 router.post("/createAuction", authUser, createAuction);
 router.post("/getAllAuctions", getAllAuctions);
+router.post("/getActiveAuctions", getActiveAuctions);
 router.put("/bid", authUser, bid);
 router.put("/saveAuction/:id", authUser, saveAuction);
 router.get("/auctions/by-user/:userId", getAuctionsByUser);
