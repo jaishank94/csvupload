@@ -370,12 +370,28 @@ exports.getUserBids = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    // Find auctions where the user's ID exists in the bids array
-    const auctionsWithUserBids = await Auction.find({
-      "bids.user": userId,
+    // Find auctions where the user has placed a bid
+    const auctions = await Auction.find({ "bids.user": userId });
+
+    // Determine eligibility for each auction
+    const auctionsWithEligibility = auctions.map((auction) => {
+      // Determine if the user's bid is in the top 4 bids
+      const userBid = auction.bids.find((bid) => bid.user.equals(userId));
+      const topBids = auction.bids
+        .sort((a, b) => b.amount - a.amount)
+        .slice(0, auction.numberOfPayers);
+
+      const isEligible = topBids.some((bid) => bid.user.equals(userId));
+
+      return {
+        _id: auction._id,
+        title: auction.title,
+        isEligible,
+        userBid,
+      };
     });
 
-    res.json(auctionsWithUserBids);
+    res.json(auctionsWithEligibility);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });

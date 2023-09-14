@@ -29,7 +29,6 @@ exports.register = async (req, res) => {
       bMonth,
       bDay,
       gender,
-      savedGames,
     } = req.body;
 
     if (!validateEmail(email)) {
@@ -126,7 +125,6 @@ exports.googleLogin = async (req, res) => {
         bDay,
         gender,
         googleId,
-        savedGames,
       });
       await newUser.save();
     }
