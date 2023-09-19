@@ -7,7 +7,7 @@ const User = require("../models/User");
 const Post = require("../models/Post");
 const Code = require("../models/Code");
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const cloudinary = require("cloudinary");
 const { generateToken } = require("../helpers/tokens");
 const { sendVerificationEmail, sendResetCode } = require("../helpers/mailer");
@@ -331,7 +331,7 @@ exports.getProfile = async (req, res) => {
     }
 
     const posts = await Post.find({ user: profile._id })
-      .populate("user", "first_name last_name picture username cover")
+      .populate("user", "first_name last_name picture username cover gender")
       .populate(
         "comments.commentBy",
         "first_name last_name picture username commentAt"

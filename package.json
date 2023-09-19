@@ -1,16 +1,17 @@
 {
-  "name": "backend",
+  "name": "lita-backend",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "server": "nodemon server.js"
+    "server": "nodemon server.js",
+    "start": "nodemon index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "bcrypt": "^5.0.1",
+    "bcryptjs": "^2.4.3",
     "cloudinary": "^1.28.1",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
@@ -25,6 +26,7 @@
     "nodemailer": "^6.7.2",
     "nodemon": "^2.0.22",
     "passport": "^0.6.0",
+    "serverless-http": "^3.2.0",
     "walletconnect": "^1.7.8",
     "web3": "^4.1.1"
   }

@@ -23,7 +23,7 @@ const gameSchema = new mongoose.Schema({
     type: String,
     default: "ACTIVE",
   },
-  numberOfPayers: {
+  numberOfPlayers: {
     type: Number,
     required: true,
   },

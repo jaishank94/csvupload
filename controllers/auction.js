@@ -105,7 +105,7 @@ exports.bid = async (req, res) => {
 
     // Block the bid amount in the user's wallet
     user.balance -= amount;
-    user.blockedBalance += amount;
+    user.blockedBalance += parseInt(amount);
 
     // Save the user's updated balances
     await user.save();
