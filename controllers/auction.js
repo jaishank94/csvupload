@@ -392,6 +392,7 @@ exports.getUserBids = async (req, res) => {
       return {
         _id: auction._id,
         title: auction.title,
+        auctionDetails: auction,
         isEligible,
         userBid,
       };
