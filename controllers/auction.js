@@ -374,9 +374,8 @@ exports.getUserBids = async (req, res) => {
 
     // Find auctions where the user has placed a bid
     const auctions = await Auction.find({
-      "bids.user": mongoose.Types.ObjectId(userId),
+      "bids.bidBy": mongoose.Types.ObjectId(userId),
     });
-    console.log(userId);
 
     // Determine eligibility for each auction
     const auctionsWithEligibility = auctions.map((auction) => {
