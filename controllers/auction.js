@@ -66,7 +66,7 @@ exports.getActiveAuctions = async (req, res) => {
 
     const { status } = req.body;
 
-    const auctions = await Auction.find({status: "ACTIVE"})
+    const auctions = await Auction.find({ status: "ACTIVE" })
       .populate("user", "first_name last_name picture username cover")
       .populate("game", "name picture")
       .populate("bids.bidBy", "first_name last_name picture username")
@@ -200,8 +200,10 @@ exports.searchAuctions = async (req, res) => {
     const user = await User.findById(playerId);
     const game = await Game.findById(gameId);
 
-    let query = Auction.find({status: "ACTIVE"})
-    .populate("user", "first_name last_name picture username cover")
+    let query = Auction.find({ status: "ACTIVE" }).populate(
+      "user",
+      "first_name last_name picture username cover"
+    );
 
     // Apply filters
     if (id) {
@@ -371,13 +373,17 @@ exports.getUserBids = async (req, res) => {
     const { userId } = req.params;
 
     // Find auctions where the user has placed a bid
-    const auctions = await Auction.find({ "bids.user": userId });
+    const auctions = await Auction.find({
+      "bids.user": mongoose.Types.ObjectId(userId),
+    });
     console.log(userId);
 
     // Determine eligibility for each auction
     const auctionsWithEligibility = auctions.map((auction) => {
       // Determine if the user's bid is in the top 4 bids
-      const userBid = auction.bids.find((bid) => bid.bidBy.toString() === userId);
+      const userBid = auction.bids.find(
+        (bid) => bid.bidBy.toString() === userId
+      );
       const topBids = auction.bids
         .sort((a, b) => b.amount - a.amount)
         .slice(0, auction.numberOfPayers);
