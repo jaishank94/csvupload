@@ -375,7 +375,9 @@ exports.getUserBids = async (req, res) => {
     // Find auctions where the user has placed a bid
     const auctions = await Auction.find({
       "bids.bidBy": mongoose.Types.ObjectId(userId),
-    });
+    })
+      .populate("game", "name picture") // Populate game information
+      .lean();
 
     // Determine eligibility for each auction
     const auctionsWithEligibility = auctions.map((auction) => {
