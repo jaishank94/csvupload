@@ -377,6 +377,7 @@ exports.getUserBids = async (req, res) => {
       "bids.bidBy": mongoose.Types.ObjectId(userId),
     })
       .populate("game", "name picture") // Populate game information
+      .populate("user", "first_name last_name username email picture gender") // Populate game information
       .lean();
 
     // Determine eligibility for each auction
