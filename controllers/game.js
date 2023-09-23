@@ -194,10 +194,10 @@ exports.saveGamerInfo = async (req, res) => {
 // Retrieve the list of games played by the user
 exports.getUserGames = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { username } = req.params;
 
     // Find the user and populate the savedGames with game details
-    const user = await User.findById(userId).populate({
+    const user = await User.find({ username: username }).populate({
       path: "savedGames.game",
       model: "Game",
     });
