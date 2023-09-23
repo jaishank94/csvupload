@@ -35,30 +35,57 @@ exports.searchGame = async (req, res) => {
 
 exports.getGamers = async (req, res) => {
   try {
-    // Find all games and populate the gamers' details
-    const games = await Game.find({})
-      .populate("Gamers.user", "name email username") // Populate gamers' details
-      .lean();
+    // Find all games with populated gamer details
+    const games = await Game.find().populate("Gamers.user");
 
-    // Create a map to store unique gamers' details
-    const uniqueGamers = new Map();
+    // Create a Set to store unique gamers based on their IDs
+    const uniqueGamers = new Set();
 
-    // Iterate through games and collect unique gamers
+    // Iterate through games and add unique gamers to the Set
     games.forEach((game) => {
       game.Gamers.forEach((gamer) => {
-        const userId = gamer.user._id.toString();
-        if (!uniqueGamers.has(userId)) {
-          uniqueGamers.set(userId, gamer.user);
-        }
+        uniqueGamers.add(gamer.user._id.toString());
       });
     });
 
-    // Convert the unique gamers map to an array
-    const gamersArray = Array.from(uniqueGamers.values());
+    // Convert the Set of unique gamer IDs back to an array
+    const uniqueGamerIds = [...uniqueGamers];
 
-    res.json(gamersArray);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    // Find and populate user details for the unique gamers
+    const uniqueGamerDetails = await User.find({
+      _id: { $in: uniqueGamerIds },
+    });
+
+    // Create a data structure to hold the result
+    const result = [];
+
+    // Iterate through unique gamers and their game details
+    uniqueGamerDetails.forEach((gamer) => {
+      const gamesPlayed = [];
+
+      games.forEach((game) => {
+        game.Gamers.forEach((gamerData) => {
+          if (gamerData.user._id.toString() === gamer._id.toString()) {
+            gamesPlayed.push({
+              gameId: game._id,
+              gameName: game.name,
+              savedAt: gamerData.savedAt,
+            });
+          }
+        });
+      });
+
+      result.push({
+        gamerId: gamer._id,
+        gamerName: gamer.name,
+        gamesPlayed,
+      });
+    });
+
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
