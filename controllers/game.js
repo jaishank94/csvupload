@@ -35,54 +35,36 @@ exports.searchGame = async (req, res) => {
 
 exports.getGamers = async (req, res) => {
   try {
-    // Find all games with populated gamer details
-    const games = await Game.find().populate("Gamers.user");
+    const pipeline = [
+      {
+        $unwind: "$Gamers",
+      },
+      {
+        $group: {
+          _id: "$Gamers.user",
+          gamesPlayed: { $push: "$$ROOT" },
+        },
+      },
+      {
+        $lookup: {
+          from: "users", // The name of the User collection
+          localField: "_id",
+          foreignField: "_id",
+          as: "userInfo",
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          userInfo: { $arrayElemAt: ["$userInfo", 0] },
+          gamesPlayed: 1,
+        },
+      },
+    ];
 
-    // Create a Set to store unique gamers based on their IDs
-    const uniqueGamers = new Set();
+    const gamersDetails = await Game.aggregate(pipeline);
 
-    // Iterate through games and add unique gamers to the Set
-    games.forEach((game) => {
-      game.Gamers.forEach((gamer) => {
-        uniqueGamers.add(gamer.user._id.toString());
-      });
-    });
-
-    // Convert the Set of unique gamer IDs back to an array
-    const uniqueGamerIds = [...uniqueGamers];
-
-    // Find and populate user details for the unique gamers
-    const uniqueGamerDetails = await User.find({
-      _id: { $in: uniqueGamerIds },
-    });
-
-    // Create a data structure to hold the result
-    const result = [];
-
-    // Iterate through unique gamers and their game details
-    uniqueGamerDetails.forEach((gamer) => {
-      const gamesPlayed = [];
-
-      games.forEach((game) => {
-        game.Gamers.forEach((gamerData) => {
-          if (gamerData.user._id.toString() === gamer._id.toString()) {
-            gamesPlayed.push({
-              gameId: game._id,
-              gameName: game.name,
-              savedAt: gamerData.savedAt,
-            });
-          }
-        });
-      });
-
-      result.push({
-        gamerId: gamer._id,
-        gamerName: gamer.name,
-        gamesPlayed,
-      });
-    });
-
-    res.json(result);
+    res.json(gamersDetails);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
