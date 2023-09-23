@@ -4,8 +4,8 @@ const cors = require("cors");
 const fileUpload = require("express-fileupload");
 const { readdirSync } = require("fs");
 const dotenv = require("dotenv");
-const serverless = require("serverless-http")
-const userRoute = require('./routes/user')
+const serverless = require("serverless-http");
+const userRoute = require("./routes/user");
 dotenv.config();
 
 const app = express();
@@ -18,10 +18,11 @@ app.use(
 );
 
 app.get("/hello", async (req, res) => {
-  res.send({msg: "Hello World"})
-})
+  res.send({ msg: "Hello World" });
+});
 // Start the cron job
 require("./crons/auctionCron.js");
+require("./crons/paymentCron.js");
 
 //routes
 readdirSync("./routes").map((r) => app.use("/", require("./routes/" + r)));
