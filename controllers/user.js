@@ -705,3 +705,53 @@ exports.getFriendsPageInfos = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+exports.getUserGamers = async (req, res) => {
+  try {
+    // Use aggregation to get the top 10 gamers and games played by them
+    const pipeline = [
+      {
+        $group: {
+          _id: "$user", // Group by the user who created the auction
+          totalGamesPlayed: { $sum: 1 }, // Calculate the total games played by each user
+        },
+      },
+      {
+        $lookup: {
+          from: "user", // The name of the User collection
+          localField: "_id",
+          foreignField: "_id",
+          as: "userInfo",
+        },
+      },
+      {
+        $sort: { totalGamesPlayed: -1 }, // Sort in descending order by total games played
+      },
+      {
+        $limit: 10, // Limit to the top 10 gamers
+      },
+      {
+        $project: {
+          _id: 0, // Exclude the _id field
+          userInfo: { $arrayElemAt: ["$userInfo", 0] }, // Extract user info
+          totalGamesPlayed: 1, // Include the total games played
+        },
+      },
+    ];
+
+    const topGamers = await Auction.aggregate(pipeline);
+
+    // Populate the game details played by each top gamer
+    for (const gamer of topGamers) {
+      const auctions = await Auction.find({
+        user: gamer.userInfo._id,
+      }).populate("game", "name picture");
+      gamer.gamesPlayed = auctions.map((auction) => auction.game);
+    }
+
+    res.json(topGamers);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
