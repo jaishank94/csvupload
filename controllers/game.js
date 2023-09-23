@@ -183,10 +183,13 @@ exports.getUserGames = async (req, res) => {
       model: "Game",
     });
 
-    const userGames = user.savedGames.map((entry) => ({
-      game: entry.game,
-      savedAt: entry.savedAt,
-    }));
+    const userGames =
+      user.savedGames &&
+      user.savedGames.length &&
+      user.savedGames.map((entry) => ({
+        game: entry.game,
+        savedAt: entry.savedAt,
+      }));
 
     res.json(userGames);
   } catch (err) {
