@@ -303,8 +303,15 @@ exports.changePassword = async (req, res) => {
 exports.getProfile = async (req, res) => {
   try {
     const { username } = req.params;
-    const user = await User.findById(req.user.id);
-    const profile = await User.findOne({ username }).select("-password");
+    const user = await User.findById(req.user.id)
+      .populate("savedGames.game", "name picture") // Populate game names and images
+      .populate("search.user", "first_name last_name picture createdAt"); // Populate searched user information
+
+    const profile = await User.findOne({ username })
+      .select("-password")
+      .populate("savedGames.game", "name picture") // Populate game names and images
+      .populate("search.user", "first_name last_name picture createdAt"); // Populate searched user information
+
     const friendship = {
       friends: false,
       following: false,
