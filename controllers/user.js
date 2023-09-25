@@ -718,7 +718,7 @@ exports.getUserGamers = async (req, res) => {
       },
       {
         $lookup: {
-          from: "user", // The name of the User collection
+          from: "users", // The name of the User collection
           localField: "_id",
           foreignField: "_id",
           as: "userInfo",
