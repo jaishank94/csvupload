@@ -14,6 +14,7 @@ const { sendVerificationEmail, sendResetCode } = require("../helpers/mailer");
 const generateCode = require("../helpers/generateCode");
 const mongoose = require("mongoose");
 const Game = require("../models/Game");
+const Auction = require("../models/Auction");
 const passport = require("passport");
 const dotenv = require("dotenv");
 
