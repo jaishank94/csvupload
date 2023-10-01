@@ -46,12 +46,16 @@ const eventSchema = new mongoose.Schema(
     },
     eventMembers: [
       {
+        amount: {
+          type: Number,
+        },
         image: {
           type: String,
         },
         user: {
           type: ObjectId,
           ref: "User",
+          required: true,
         },
         createdAt: {
           type: Date,
