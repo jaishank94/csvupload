@@ -18,4 +18,11 @@ router.put("/events/:id", authUser, eventController.updateEvent);
 // Delete an event by ID
 router.delete("/events/:id", authUser, eventController.deleteEvent);
 
+// Purchase event tickets
+router.post(
+  "/events/purchase-ticket",
+  authUser,
+  eventController.purchaseEventTicket
+);
+
 module.exports = router;
