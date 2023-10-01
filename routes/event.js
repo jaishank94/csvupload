@@ -15,6 +15,9 @@ router.get("/events/:id", eventController.getEventById);
 // Update event details by ID
 router.put("/events/:id", authUser, eventController.updateEvent);
 
+// Update event details by ID
+router.put("/events/cancel/:id", authUser, eventController.updateEvent);
+
 // Delete an event by ID
 router.delete("/events/:id", authUser, eventController.deleteEvent);
 
