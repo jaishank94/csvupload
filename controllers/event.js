@@ -34,13 +34,15 @@ exports.getEvents = async (req, res) => {
 // Purchase event ticket
 exports.purchaseEventTicket = async (req, res) => {
   try {
-    const { amount, image, eventId, userId } = req.body;
+    const { image, eventId, userId } = req.body;
     // const { userId } = req.user;
 
     const event = await Event.findById(eventId);
     if (!event || event.numberOfTickets === event.eventMembers.length) {
       return res.status(201).json({ error: "Event not found" });
     }
+
+    const amount = event.ticketPrice;
 
     if (event.status !== "ACTIVE") {
       return res.status(201).json({ error: "Event is not in progress" });
