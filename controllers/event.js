@@ -225,3 +225,122 @@ exports.makeDonation = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+exports.submitRankings = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const { rankings, screenshotUrl, usrId } = req.body;
+    // const hostId = req.user._id;
+    const hostId = usrId;
+
+    // Find the event
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    // Check if the user submitting rankings is the host of the event
+    if (!event.user.equals(hostId)) {
+      return res
+        .status(403)
+        .json({ error: "Only the event host can submit rankings" });
+    }
+
+    // Update the rankings for eventMembers
+    for (const { userId, ranking } of rankings) {
+      const member = event.eventMembers.find((member) =>
+        member.user.equals(userId)
+      );
+      if (member) {
+        member.ranking = ranking;
+      }
+    }
+
+    // Save the rankings and screenshot URL
+    event.rankingsScreenshotUrl = screenshotUrl;
+    await event.save();
+
+    res.status(200).json({ message: "Rankings submitted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.viewEventRankings = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+
+    // Find the event
+    const event = await Event.findById(eventId).populate("eventMembers.user");
+
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    res.status(200).json(event.eventMembers);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.verifyEventRankings = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+
+    // Find the event
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    // Mark the event as verified and update the winner
+    event.verified = true;
+
+    // Find the event member with the highest ranking (winner)
+    const winner = event.eventMembers.reduce((acc, member) => {
+      if (member.ranking > acc.ranking) {
+        return member;
+      }
+      return acc;
+    }, event.eventMembers[0]);
+
+    if (winner) {
+      event.winner = winner.user;
+    }
+
+    // Save the changes
+    await event.save();
+
+    // Send the donation amount to the winner's wallet (if any)
+    if (event.donations && event.donations.length > 0) {
+      const winnerDonations = event.donations.filter(
+        (donation) => donation.type === "winner"
+      );
+      const totalDonationAmount = winnerDonations.reduce(
+        (acc, donation) => acc + donation.amount,
+        0
+      );
+
+      if (totalDonationAmount > 0) {
+        // Assuming you have a user model and a function to update the user's wallet balance
+        const winnerUser = await User.findById(winner.user);
+
+        if (winnerUser) {
+          winnerUser.balance += totalDonationAmount;
+
+          // Save the updated balance
+          await winnerUser.save();
+        }
+      }
+    }
+
+    res.status(200).json({ message: "Rankings verified successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};

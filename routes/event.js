@@ -28,4 +28,23 @@ router.post(
 // Make a donation to an event
 router.post("/events/:eventId/donate", authUser, eventController.makeDonation);
 
+// Event Host submits rankings
+router.post(
+  "/events/:eventId/rankings",
+  authUser,
+  eventController.submitRankings
+);
+
+// Admin views and verifies event rankings
+router.get(
+  "/admin/events/:eventId/rankings",
+  authUser,
+  eventController.viewEventRankings
+);
+router.post(
+  "/admin/events/:eventId/verify-rankings",
+  authUser,
+  eventController.verifyEventRankings
+);
+
 module.exports = router;

@@ -61,8 +61,22 @@ const eventSchema = new mongoose.Schema(
           type: Date,
           required: true,
         },
+        ranking: {
+          type: Number, // Add this field to store rankings
+          default: 0, // Initialize with 0
+        },
       },
     ],
+    winner: {
+      type: ObjectId,
+      ref: "User",
+    },
+    rankingsScreenshotUrl: {
+      type: String,
+    },
+    verified: {
+      type: Boolean,
+    },
     donations: [
       {
         type: {
