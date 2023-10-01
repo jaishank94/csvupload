@@ -25,4 +25,7 @@ router.post(
   eventController.purchaseEventTicket
 );
 
+// Make a donation to an event
+router.post("/events/:eventId/donate", authUser, eventController.makeDonation);
+
 module.exports = router;

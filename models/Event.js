@@ -63,6 +63,34 @@ const eventSchema = new mongoose.Schema(
         },
       },
     ],
+    donations: [
+      {
+        type: {
+          type: String,
+          enum: ["host", "player", "winner"],
+          default: "host",
+        },
+        donationReceiver: {
+          type: ObjectId,
+          ref: "User",
+        },
+        amount: {
+          type: Number,
+        },
+        image: {
+          type: String,
+        },
+        user: {
+          type: ObjectId,
+          ref: "User",
+          required: true,
+        },
+        createdAt: {
+          type: Date,
+          required: true,
+        },
+      },
+    ],
   },
   {
     timestamps: true,
