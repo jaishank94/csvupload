@@ -769,3 +769,41 @@ exports.getUserGamers = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+// Get a list of all users
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, "first_name last_name username picture");
+    res.json(users);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Search for a user by username
+exports.searchUserByUsername = async (req, res) => {
+  try {
+    const { username } = req.params;
+
+    if (!username) {
+      return res
+        .status(400)
+        .json({ error: "Username query parameter is required" });
+    }
+
+    const user = await User.findOne(
+      { username },
+      "first_name last_name username picture"
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(user);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
