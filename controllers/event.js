@@ -54,12 +54,14 @@ exports.purchaseEventTicket = async (req, res) => {
       return res.status(201).json({ error: "Insufficient balance" });
     }
 
-    // Block the bid amount in the user's wallet
+    const eventUser = await User.findById(event.user.toString());
+
     user.balance -= amount;
-    user.blockedBalance += parseInt(amount);
+    eventUser.balance += parseInt(amount);
 
     // Save the user's updated balances
     await user.save();
+    await eventUser.save();
 
     // Add the purchase to the event's member array
     let newPurchase = await Auction.findByIdAndUpdate(
@@ -172,8 +174,12 @@ exports.makeDonation = async (req, res) => {
       // Send the donation amount directly to the event user's wallet balance
       eventUser.balance += amount;
 
+      event.totalDonationReceivedByHost += amount;
+
       await eventUser.save();
       await user.save();
+
+      await event.save();
     } else if (type === "player") {
       // Check if the user is an event member
       const isEventMember = event.eventMembers.some((member) =>
@@ -268,6 +274,81 @@ exports.submitRankings = async (req, res) => {
   }
 };
 
+exports.cancelEvent = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+
+    // Find the event
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    // Ensure the event is not already canceled
+    if (event.status !== "ACTIVE") {
+      return res.status(400).json({ error: "Event is not active to cancel" });
+    }
+
+    // Mark the event as canceled
+    event.status = "CANCELLED";
+
+    // Calculate the total refund amount
+    let totalRefundAmount = 0;
+
+    // Refund event members' ticket price
+    event.eventMembers.forEach(async (member) => {
+      totalRefundAmount += event.ticketPrice;
+      if (member.amount > 0) {
+        // Assuming you have a user model and a function to update the user's wallet balance
+        const memberUser = await User.findById(member.user);
+        if (memberUser) {
+          memberUser.balance += event.ticketPrice;
+          await memberUser.save();
+        }
+        const eUser = await User.findById(event.user.toString());
+        if (eUser) {
+          eUser.balance -= event.ticketPrice;
+          await eUser.save();
+        }
+      }
+    });
+
+    // Refund donation members (if any)
+    if (event.donations && event.donations.length > 0) {
+      event.donations.forEach(async (donation) => {
+        totalRefundAmount += donation.amount;
+        // Assuming you have a user model and a function to update the user's wallet balance
+        const donationUser = await User.findById(donation.user);
+        if (donationUser) {
+          donationUser.balance += donation.amount;
+          await donationUser.save();
+        }
+
+        if (donation.type === "player" || donation.type === "host") {
+          // Find the user made the donation
+          const donationReceiverUser = await User.findById(
+            donation.donationReceiver.toString()
+          );
+
+          if (donationReceiverUser) {
+            donationReceiverUser.balance -= donation.amount;
+            await donationReceiverUser.save();
+          }
+        }
+      });
+    }
+
+    // Save the event changes
+    await event.save();
+
+    res.status(200).json({ message: "Event canceled successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 exports.viewEventRankings = async (req, res) => {
   try {
     const { eventId } = req.params;
@@ -338,7 +419,168 @@ exports.verifyEventRankings = async (req, res) => {
       }
     }
 
+    const pipeline = [
+      {
+        $match: {
+          _id: mongoose.Types.ObjectId(eventId),
+        },
+      },
+      {
+        $unwind: "$eventMembers",
+      },
+      {
+        $group: {
+          _id: null,
+          totalAmount: { $sum: "$eventMembers.amount" },
+        },
+      },
+    ];
+
+    const result = await Event.aggregate(pipeline);
+
+    const eUser = await User.findById(event.user.toString());
+
+    // Calculate the total amount to distribute among event members
+    let totalAmountToDistribute =
+      event.totalDonationReceivedByHost + result[0].totalAmount;
+
+    // Distribute the total amount based on the division mode
+    if (event.percentageDivisionMode === "different") {
+      // Distribute based on different percentages for event members
+      event.eventMemberPercentages.forEach(async (memberPercentage) => {
+        const member = event.eventMembers.find(async (e) =>
+          e.user.equals(memberPercentage.user)
+        );
+
+        const dUser = await User.findById(member.user.toString());
+
+        if (member) {
+          const distributedAmount = distributeAmount(
+            totalAmountToDistribute,
+            memberPercentage.percentage
+          );
+
+          if (eUser) {
+            eUser.balance -= distributedAmount;
+
+            // Save the updated balance
+            await eUser.save();
+          }
+          if (dUser) {
+            dUser.balance += distributedAmount;
+
+            // Save the updated balance
+            await dUser.save();
+          }
+          totalAmountToDistribute -= distributedAmount;
+        }
+      });
+    } else if (event.percentageDivisionMode === "same") {
+      // Distribute based on the same percentage to all event members
+      const samePercentage =
+        event.eventMemberPercentages.length > 0
+          ? event.eventMemberPercentages[0].percentage
+          : 0;
+
+      event.eventMembers.forEach(async (member) => {
+        const distributedAmount = distributeAmount(
+          totalAmountToDistribute,
+          samePercentage
+        );
+        // member.amount += distributedAmount;
+
+        const dUser = await User.findById(member.user.toString());
+
+        if (eUser) {
+          eUser.balance -= distributedAmount;
+
+          // Save the updated balance
+          await eUser.save();
+        }
+        if (dUser) {
+          dUser.balance += distributedAmount;
+
+          // Save the updated balance
+          await dUser.save();
+        }
+
+        totalAmountToDistribute -= distributedAmount;
+      });
+    } else if (event.percentageDivisionMode === "ranking") {
+      // Distribute based on ranking percentages
+      event.eventMembers.forEach(async (member) => {
+        const rankingPercentage = event.rankingPercentages.find(
+          (rp) => rp.ranking === member.ranking
+        );
+
+        if (rankingPercentage) {
+          const distributedAmount = distributeAmount(
+            totalAmountToDistribute,
+            rankingPercentage.percentage
+          );
+          // member.amount += distributedAmount;
+
+          const dUser = await User.findById(member.user.toString());
+
+          if (eUser) {
+            eUser.balance -= distributedAmount;
+
+            // Save the updated balance
+            await eUser.save();
+          }
+          if (dUser) {
+            dUser.balance += distributedAmount;
+
+            // Save the updated balance
+            await dUser.save();
+          }
+
+          totalAmountToDistribute -= distributedAmount;
+        }
+      });
+    }
+
+    event.status = "COMPLETED";
+    await event.save();
+
     res.status(200).json({ message: "Rankings verified successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Define a function to distribute an amount based on percentages
+const distributeAmount = (amount, percentage) => {
+  return (amount * percentage) / 100;
+};
+
+exports.defineTotalDonation = async (eventData) => {
+  try {
+    const { eventId, totalDonationReceived, userId } = eventData;
+    const eventUser = userId;
+
+    // Find the event
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    // Check if the user defining the donation is the event user
+    if (!event.user.equals(eventUser)) {
+      return res
+        .status(403)
+        .json({ error: "Only the event user can define the donation" });
+    }
+
+    // Update the total donation received
+    event.totalDonationReceived = totalDonationReceived;
+    await event.save();
+
+    res
+      .status(200)
+      .json({ message: "Total donation received defined successfully" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });

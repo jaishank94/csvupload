@@ -77,6 +77,38 @@ const eventSchema = new mongoose.Schema(
     verified: {
       type: Boolean,
     },
+    totalDonationReceived: {
+      type: Number,
+      default: 0,
+    },
+    percentageDivisionMode: {
+      type: String,
+      enum: ["different", "same", "ranking", "not_divided"],
+      default: "not_divided", // Default to not dividing
+    },
+    eventMemberPercentages: [
+      {
+        user: {
+          type: ObjectId,
+          ref: "User",
+        },
+        percentage: {
+          type: Number,
+          default: 0,
+        },
+      },
+    ],
+    rankingPercentages: [
+      {
+        ranking: {
+          type: Number,
+        },
+        percentage: {
+          type: Number,
+          default: 0,
+        },
+      },
+    ],
     donations: [
       {
         type: {
