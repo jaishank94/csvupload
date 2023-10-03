@@ -85,7 +85,7 @@ exports.purchaseEventTicket = async (req, res) => {
     await eventUser.save();
 
     // Add the purchase to the event's member array
-    let newPurchase = await Auction.findByIdAndUpdate(
+    let newPurchase = await Event.findByIdAndUpdate(
       eventId,
       {
         $push: {
