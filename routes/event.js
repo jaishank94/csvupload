@@ -10,7 +10,11 @@ router.post("/events", authUser, eventController.createEvent);
 router.get("/events", eventController.getEvents);
 
 // Get a list of events in which user participated and created
-router.get("/events/my-events/:userId", eventController.getUserEventsHistory);
+router.get(
+  "/events/my-events/:userId",
+  authUser,
+  eventController.getUserEventsHistory
+);
 
 // Get event details by ID
 router.get("/events/:id", eventController.getEventById);
