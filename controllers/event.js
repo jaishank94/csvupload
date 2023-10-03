@@ -18,11 +18,15 @@ exports.createEvent = async (req, res) => {
 // Get a list of events with pagination
 exports.getEvents = async (req, res) => {
   try {
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 10, status } = req.query;
     const options = {
       page: parseInt(page),
       limit: parseInt(limit),
     };
+
+    if (status && status !== "") {
+      options.status = status;
+    }
 
     const events = await Event.paginate({}, options);
 
@@ -617,6 +621,31 @@ exports.defineTotalDonation = async (eventData) => {
     res
       .status(200)
       .json({ message: "Total donation received defined successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.getUserEventsHistory = async (req, res) => {
+  try {
+    const { userId } = req.params; // Assuming you have user authentication in req.user
+
+    // Find events created by the user
+    const userCreatedEvents = await Event.find({ user: userId }).populate(
+      "game",
+      "name picture description"
+    );
+
+    // Find events where the user is an eventMember
+    const userEventMemberships = await Event.find({
+      "eventMembers.user": userId,
+    }).populate("game", "name picture description");
+
+    res.json({
+      createdEvents: userCreatedEvents,
+      eventMemberships: userEventMemberships,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
