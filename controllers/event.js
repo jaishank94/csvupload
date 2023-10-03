@@ -1,5 +1,6 @@
 const Event = require("../models/Event");
 const User = require("../models/User");
+const Game = require("../models/Game");
 const mongoose = require("mongoose");
 
 // Create a new event
@@ -122,13 +123,37 @@ exports.purchaseEventTicket = async (req, res) => {
 exports.getEventById = async (req, res) => {
   try {
     const { id } = req.params;
-    const event = await Event.findById(id)
-      .populate("eventMembers.user", "picture first_name last_name username")
-      .populate("game", "name picture numberOfPayers description status");
+    const event = await Event.findById(id);
+
     if (!event) {
       return res.status(404).json({ error: "Event not found" });
     }
-    res.json(event);
+
+    // Fetch additional information for the event
+    const game = await Game.findById(event.game);
+    const eventMembers = await User.find(
+      { _id: { $in: event.eventMembers.map((member) => member.user) } },
+      "picture first_name last_name username"
+    );
+
+    const enrichedEvent = {
+      ...event.toObject(),
+      game: game
+        ? {
+            name: game.name,
+            picture: game.picture,
+            description: game.description,
+          }
+        : null,
+      eventMembers: eventMembers.map((member) => ({
+        picture: member.picture,
+        first_name: member.first_name,
+        last_name: member.last_name,
+        username: member.username,
+      })),
+    };
+
+    res.json(enrichedEvent);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
