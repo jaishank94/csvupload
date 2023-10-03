@@ -23,7 +23,10 @@ exports.getEvents = async (req, res) => {
       limit: parseInt(limit),
     };
 
-    const events = await Event.paginate({}, options);
+    const events = await Event.paginate({}, options)
+      .populate("eventMembers.user", "picture first_name last_name username")
+      .populate("game", "name picture numberOfPayers description status");
+
     res.json(events);
   } catch (err) {
     console.error(err);
@@ -90,7 +93,9 @@ exports.purchaseEventTicket = async (req, res) => {
 exports.getEventById = async (req, res) => {
   try {
     const { id } = req.params;
-    const event = await Event.findById(id);
+    const event = await Event.findById(id)
+      .populate("eventMembers.user", "picture first_name last_name username")
+      .populate("game", "name picture numberOfPayers description status");
     if (!event) {
       return res.status(404).json({ error: "Event not found" });
     }
