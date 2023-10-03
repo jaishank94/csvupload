@@ -256,6 +256,7 @@ exports.makeDonation = async (req, res) => {
       amount,
       image: user.picture,
       user: userId,
+      createdAt: new Date(),
     });
 
     await event.save();
