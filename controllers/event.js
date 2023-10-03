@@ -111,30 +111,23 @@ exports.purchaseEventTicket = async (req, res) => {
 exports.getEventById = async (req, res) => {
   try {
     const { id } = req.params;
-    const event = await Event.findById(id);
+    const event = await Event.findById(id)
+      .populate({
+        path: "game",
+        select: "name picture description",
+      })
+      .populate({
+        path: "eventMembers.user",
+        select: "picture first_name last_name username",
+      })
+      .populate({
+        path: "user",
+        select: "picture first_name last_name username",
+      });
 
     if (!event) {
       return res.status(404).json({ error: "Event not found" });
     }
-
-    // Populate the necessary fields
-    const populatedEvents = await Event.populate(events.docs, [
-      {
-        path: "game",
-        select: "name picture description",
-      },
-      {
-        path: "eventMembers.user",
-        select: "picture first_name last_name username",
-      },
-      {
-        path: "user",
-        select: "picture first_name last_name username",
-      },
-    ]);
-
-    // Replace the original docs with the populated ones
-    event.docs = populatedEvents;
 
     res.json(event);
   } catch (err) {
