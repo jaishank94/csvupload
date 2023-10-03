@@ -23,9 +23,38 @@ exports.getEvents = async (req, res) => {
       limit: parseInt(limit),
     };
 
-    const events = await Event.paginate({}, options)
-      .populate("eventMembers.user", "picture first_name last_name username")
-      .populate("game", "name picture numberOfPayers description status");
+    const events = await Event.paginate({}, options);
+
+    // Fetch additional information for each event
+    const enrichedEvents = await Promise.all(
+      events.docs.map(async (event) => {
+        const game = await Game.findById(event.game);
+        const eventMembers = await User.find(
+          { _id: { $in: event.eventMembers.map((member) => member.user) } },
+          "picture first_name last_name username"
+        );
+
+        return {
+          ...event.toObject(),
+          game: game
+            ? {
+                name: game.name,
+                picture: game.picture,
+                description: game.description,
+                status: game.status,
+              }
+            : null,
+          eventMembers: eventMembers.map((member) => ({
+            picture: member.picture,
+            first_name: member.first_name,
+            last_name: member.last_name,
+            username: member.username,
+          })),
+        };
+      })
+    );
+
+    res.json({ ...events, docs: enrichedEvents });
 
     res.json(events);
   } catch (err) {
