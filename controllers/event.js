@@ -26,36 +26,24 @@ exports.getEvents = async (req, res) => {
 
     const events = await Event.paginate({}, options);
 
-    // Fetch additional information for each event
-    const enrichedEvents = await Promise.all(
-      events.docs.map(async (event) => {
-        const game = await Game.findById(event.game);
-        const eventMembers = await User.find(
-          { _id: { $in: event.eventMembers.map((member) => member.user) } },
-          "picture first_name last_name username"
-        );
+    // Populate the necessary fields
+    const populatedEvents = await Event.populate(events.docs, [
+      {
+        path: "game",
+        select: "name picture description",
+      },
+      {
+        path: "eventMembers.user",
+        select: "picture first_name last_name username",
+      },
+      {
+        path: "user",
+        select: "picture first_name last_name username",
+      },
+    ]);
 
-        return {
-          ...event.toObject(),
-          game: game
-            ? {
-                name: game.name,
-                picture: game.picture,
-                description: game.description,
-                status: game.status,
-              }
-            : null,
-          eventMembers: eventMembers.map((member) => ({
-            picture: member.picture,
-            first_name: member.first_name,
-            last_name: member.last_name,
-            username: member.username,
-          })),
-        };
-      })
-    );
-
-    res.json({ ...events, docs: enrichedEvents });
+    // Replace the original docs with the populated ones
+    events.docs = populatedEvents;
 
     res.json(events);
   } catch (err) {
@@ -129,31 +117,26 @@ exports.getEventById = async (req, res) => {
       return res.status(404).json({ error: "Event not found" });
     }
 
-    // Fetch additional information for the event
-    const game = await Game.findById(event.game);
-    const eventMembers = await User.find(
-      { _id: { $in: event.eventMembers.map((member) => member.user) } },
-      "picture first_name last_name username"
-    );
+    // Populate the necessary fields
+    const populatedEvents = await Event.populate(events.docs, [
+      {
+        path: "game",
+        select: "name picture description",
+      },
+      {
+        path: "eventMembers.user",
+        select: "picture first_name last_name username",
+      },
+      {
+        path: "user",
+        select: "picture first_name last_name username",
+      },
+    ]);
 
-    const enrichedEvent = {
-      ...event.toObject(),
-      game: game
-        ? {
-            name: game.name,
-            picture: game.picture,
-            description: game.description,
-          }
-        : null,
-      eventMembers: eventMembers.map((member) => ({
-        picture: member.picture,
-        first_name: member.first_name,
-        last_name: member.last_name,
-        username: member.username,
-      })),
-    };
+    // Replace the original docs with the populated ones
+    event.docs = populatedEvents;
 
-    res.json(enrichedEvent);
+    res.json(event);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
