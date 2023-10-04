@@ -632,10 +632,9 @@ exports.getUserEventsHistory = async (req, res) => {
     const { userId } = req.params; // Assuming you have user authentication in req.user
 
     // Find events created by the user
-    const userCreatedEvents = await Event.find({ user: userId }).populate(
-      "game",
-      "name picture description"
-    );
+    const userCreatedEvents = await Event.find({ user: userId })
+      .populate("game", "name picture description")
+      .populate("user", "picture first_name last_name username");
 
     // Find events where the user is an eventMember
     const userEventMemberships = await Event.find({
