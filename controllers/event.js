@@ -18,7 +18,7 @@ exports.createEvent = async (req, res) => {
 // Get a list of events with pagination
 exports.getEvents = async (req, res) => {
   try {
-    const { page = 1, limit = 10, status } = req.query;
+    const { page = 1, limit = 10, status } = req.body;
     const options = {
       page: parseInt(page),
       limit: parseInt(limit),
