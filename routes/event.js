@@ -7,7 +7,7 @@ const { authUser } = require("../middlwares/auth");
 router.post("/events", authUser, eventController.createEvent);
 
 // Get a list of events (with pagination)
-router.post("/events", eventController.getEvents);
+router.post("/getAllEvents", eventController.getEvents);
 
 // Get a list of events in which user participated and created
 router.get(
