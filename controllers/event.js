@@ -22,11 +22,12 @@ exports.getEvents = async (req, res) => {
     const options = {
       page: parseInt(page),
       limit: parseInt(limit),
+      status,
     };
 
-    if (status && status !== "") {
-      options.status = status;
-    }
+    // if (status && status !== "") {
+    //   options.status = status;
+    // }
 
     const events = await Event.paginate({}, options);
 
