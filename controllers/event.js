@@ -49,6 +49,10 @@ exports.getEvents = async (req, res) => {
         select: "picture first_name last_name username",
       },
       {
+        path: "donations.user",
+        select: "picture first_name last_name username",
+      },
+      {
         path: "user",
         select: "picture first_name last_name username",
       },
@@ -112,7 +116,10 @@ exports.purchaseEventTicket = async (req, res) => {
       {
         new: true,
       }
-    ).populate("eventMembers.user", "picture first_name last_name username");
+    )
+      .populate("eventMembers.user", "picture first_name last_name username")
+      .populate("donations.user", "picture first_name last_name username");
+
     res.json(newPurchase.eventMembers);
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -130,6 +137,10 @@ exports.getEventById = async (req, res) => {
       })
       .populate({
         path: "eventMembers.user",
+        select: "picture first_name last_name username",
+      })
+      .populate({
+        path: "donations.user",
         select: "picture first_name last_name username",
       })
       .populate({
@@ -402,7 +413,9 @@ exports.viewEventRankings = async (req, res) => {
     const { eventId } = req.params;
 
     // Find the event
-    const event = await Event.findById(eventId).populate("eventMembers.user");
+    const event = await Event.findById(eventId)
+      .populate("eventMembers.user", "picture first_name last_name username")
+      .populate("donations.user", "picture first_name last_name username");
 
     if (!event) {
       return res.status(404).json({ error: "Event not found" });

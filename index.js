@@ -63,13 +63,19 @@ readdirSync("./routes").map((r) => app.use("/", require("./routes/" + r)));
 //database
 mongoose.set("strictQuery", true);
 mongoose
-  .connect(process.env.DATABASE_URL)
+  .connect(process.env.DATABASE_URL, {
+    useNewUrlParser: true, // Use new URL parser
+    useUnifiedTopology: true, // Use new Server Discovery and Monitoring engine
+    // user: username, // MongoDB username
+    // pass: password, // MongoDB password
+    // authSource: "$external", // Auth source
+    // authMechanism: "MONGODB-AWS", // Auth mechanism
+  })
   .then(() => console.log("database connected successfully"))
   .catch((err) => console.log("error connecting to mongodb", err));
 
 if (process.env.ENVIRONMENT === "production") {
   exports.handler = serverless(app);
-  // module.exports = app;
 } else {
   const PORT = process.env.PORT || 8000;
   app.listen(PORT, () => {
