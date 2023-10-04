@@ -18,18 +18,25 @@ exports.createEvent = async (req, res) => {
 // Get a list of events with pagination
 exports.getEvents = async (req, res) => {
   try {
-    const { page = 1, limit = 10, status } = req.body;
+    const { page = 1, limit = 10, gender, status } = req.body;
     const options = {
       page: parseInt(page),
       limit: parseInt(limit),
-      status,
     };
 
-    // if (status && status !== "") {
-    //   options.status = status;
-    // }
+    // Create a filter object for the MongoDB query
+    const filters = {};
 
-    const events = await Event.paginate({}, options);
+    // Apply filters if provided in the query parameters
+    if (gender) {
+      filters.gender = gender;
+    }
+
+    if (status) {
+      filters.status = status;
+    }
+
+    const events = await Event.paginate(filters, options);
 
     // Populate the necessary fields
     const populatedEvents = await Event.populate(events.docs, [
