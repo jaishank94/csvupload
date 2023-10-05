@@ -57,4 +57,7 @@ router.post(
   eventController.verifyEventRankings
 );
 
+router.put("/event/placeBid", authUser, eventController.placeBid);
+router.get("/event/my-bids/:userId", authUser, eventController.getUserBids);
+
 module.exports = router;

@@ -299,7 +299,9 @@ exports.submitRankings = async (req, res) => {
     const hostId = usrId;
 
     // Find the event
-    const event = await Event.findById(eventId);
+    const event = await Event.findById(eventId)
+      .where("status")
+      .in(["IN-PROGRESS"]);
 
     if (!event) {
       return res.status(404).json({ error: "Event not found" });
@@ -338,7 +340,9 @@ exports.cancelEvent = async (req, res) => {
     const { eventId } = req.params;
 
     // Find the event
-    const event = await Event.findById(eventId);
+    const event = await Event.findById(eventId)
+      .where("status")
+      .nin(["CANCELLED", "COMPLETED"]);
 
     if (!event) {
       return res.status(404).json({ error: "Event not found" });
@@ -347,6 +351,12 @@ exports.cancelEvent = async (req, res) => {
     // Ensure the event is not already canceled
     if (event.status !== "ACTIVE") {
       return res.status(400).json({ error: "Event is not active to cancel" });
+    }
+
+    // Check if the event is in progress
+    if (event.status === "ACTIVE") {
+      // Release blocked bids if the event is in progress
+      await this.releaseBids(event.bids);
     }
 
     // Mark the event as canceled
@@ -663,6 +673,105 @@ exports.getUserEventsHistory = async (req, res) => {
       createdEvents: userCreatedEvents,
       eventMemberships: userEventMemberships,
     });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.placeBid = async (req, res) => {
+  try {
+    const { amount, image, eventId, userId } = req.body;
+    // const { userId } = req.user;
+
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(201).json({ error: "Event not found" });
+    }
+
+    if (event.status !== "ACTIVE") {
+      return res.status(201).json({ error: "Event is not in progress" });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user.balance || user?.balance < amount) {
+      return res.status(201).json({ error: "Insufficient balance" });
+    }
+
+    // Block the bid amount in the user's wallet
+    user.balance -= amount;
+    user.blockedBalance += parseInt(amount);
+
+    // Save the user's updated balances
+    await user.save();
+
+    // Add the bid to the event's bids array
+    let newBids = await Event.findByIdAndUpdate(
+      eventId,
+      {
+        $push: {
+          bids: {
+            amount: amount,
+            image: image,
+            bidBy: req.user.id,
+            bidAt: new Date(),
+          },
+        },
+      },
+      {
+        new: true,
+      }
+    ).populate("bids.bidBy", "picture first_name last_name username");
+    res.json(newBids.bids);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// Function to release blocked bids
+exports.releaseBids = async (bids) => {
+  for (const bid of bids) {
+    const user = await User.findById(bid.user);
+    user.blockedBalance -= bid.amount;
+    user.balance += bid.amount;
+    await user.save();
+  }
+};
+
+// Get a list of events where the user has placed bids
+exports.getUserBids = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Find events where the user has placed a bid
+    const events = await Event.find({
+      "bids.bidBy": mongoose.Types.ObjectId(userId),
+    })
+      .populate("game", "name picture") // Populate game information
+      .populate("user", "first_name last_name username email picture gender") // Populate game information
+      .lean();
+
+    // Determine eligibility for each auction
+    const eventsWithEligibility = events.map((event) => {
+      // Determine if the user's bid is in the top 4 bids
+      const userBid = event.bids.find((bid) => bid.bidBy.toString() === userId);
+      const topBids = event.bids
+        .sort((a, b) => b.amount - a.amount)
+        .slice(0, event.numberOfTickets);
+
+      const isEligible = topBids.some((bid) => bid.bidBy.toString() === userId);
+
+      return {
+        _id: event._id,
+        title: event.title,
+        eventDetails: event,
+        isEligible,
+        userBid,
+      };
+    });
+
+    res.json(eventsWithEligibility);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });

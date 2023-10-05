@@ -137,6 +137,43 @@ const eventSchema = new mongoose.Schema(
         },
       },
     ],
+    bids: [
+      {
+        amount: {
+          type: Number,
+        },
+        image: {
+          type: String,
+        },
+        bidBy: {
+          type: ObjectId,
+          ref: "User",
+        },
+        bidAt: {
+          type: Date,
+          required: true,
+        },
+      },
+    ],
+    ratings: [{ type: ObjectId, ref: "Rating" }],
+    eligibleBids: [
+      {
+        amount: {
+          type: Number,
+        },
+        image: {
+          type: String,
+        },
+        bidBy: {
+          type: ObjectId,
+          ref: "User",
+        },
+        bidAt: {
+          type: Date,
+          required: true,
+        },
+      },
+    ],
   },
   {
     timestamps: true,
