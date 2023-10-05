@@ -15,7 +15,10 @@ const updateEventStatus = async () => {
       event.status = "IN-PROGRESS";
 
       event.bids.sort((a, b) => b.amount - a.amount);
-      event.eligibleBids = event.bids.slice(0, event.numberOfPayers);
+      event.eligibleBids = event.bids.slice(
+        0,
+        event.numberOfTickets - event.eventMembers.length
+      );
 
       for (const bid of event.bids) {
         const user = await User.findById(bid.user);
