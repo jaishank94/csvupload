@@ -33,6 +33,10 @@ const eventSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    isAuctionTicket: {
+      type: Boolean,
+      required: true,
+    },
     description: {
       type: String,
     },
