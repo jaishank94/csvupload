@@ -538,10 +538,7 @@ exports.verifyEventRankings = async (req, res) => {
       });
     } else if (event.percentageDivisionMode === "same") {
       // Distribute based on the same percentage to all event members
-      const samePercentage =
-        event.eventMemberPercentages.length > 0
-          ? event.eventMemberPercentages[0].percentage
-          : 0;
+      const samePercentage = 100 / event.eventMembers.length;
 
       event.eventMembers.forEach(async (member) => {
         const distributedAmount = distributeAmount(
