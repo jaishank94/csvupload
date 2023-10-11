@@ -2,6 +2,7 @@ const Event = require("../models/Event");
 const User = require("../models/User");
 const Game = require("../models/Game");
 const mongoose = require("mongoose");
+const moment = require("moment");
 
 // Create a new event
 exports.createEvent = async (req, res) => {
@@ -195,7 +196,7 @@ exports.deleteEvent = async (req, res) => {
 exports.makeDonation = async (req, res) => {
   try {
     const { eventId } = req.params;
-    const { type, amount, donationReceiver, userId } = req.body;
+    const { type, amount, donationReceiver, userId, message } = req.body;
     // const userId = req.user._id; // Assuming you have user information in the request
 
     // Find the event
@@ -277,6 +278,7 @@ exports.makeDonation = async (req, res) => {
       type,
       donationReceiver: donationReceiver,
       amount,
+      message,
       image: user.picture,
       user: userId,
       createdAt: new Date(),
@@ -326,6 +328,8 @@ exports.submitRankings = async (req, res) => {
 
     // Save the rankings and screenshot URL
     event.rankingsScreenshotUrl = screenshotUrl;
+    event.screenshotUploadedAt = new Date();
+
     await event.save();
 
     res.status(200).json({ message: "Rankings submitted successfully" });
@@ -436,191 +440,6 @@ exports.viewEventRankings = async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
   }
-};
-
-exports.verifyEventRankings = async (req, res) => {
-  try {
-    const { eventId } = req.params;
-
-    // Find the event
-    const event = await Event.findById(eventId);
-
-    if (!event) {
-      return res.status(404).json({ error: "Event not found" });
-    }
-
-    // Mark the event as verified and update the winner
-    event.verified = true;
-
-    // Find the event member with the highest ranking (winner)
-    const winner = event.eventMembers.reduce((acc, member) => {
-      if (member.ranking > acc.ranking) {
-        return member;
-      }
-      return acc;
-    }, event.eventMembers[0]);
-
-    if (winner) {
-      event.winner = winner.user;
-    }
-
-    // Save the changes
-    await event.save();
-
-    // Send the donation amount to the winner's wallet (if any)
-    if (event.donations && event.donations.length > 0) {
-      const winnerDonations = event.donations.filter(
-        (donation) => donation.type === "winner"
-      );
-      const totalDonationAmount = winnerDonations.reduce(
-        (acc, donation) => acc + donation.amount,
-        0
-      );
-
-      if (totalDonationAmount > 0) {
-        // Assuming you have a user model and a function to update the user's wallet balance
-        const winnerUser = await User.findById(winner.user);
-
-        if (winnerUser) {
-          winnerUser.balance += totalDonationAmount;
-
-          // Save the updated balance
-          await winnerUser.save();
-        }
-      }
-    }
-
-    const pipeline = [
-      {
-        $match: {
-          _id: mongoose.Types.ObjectId(eventId),
-        },
-      },
-      {
-        $unwind: "$eventMembers",
-      },
-      {
-        $group: {
-          _id: null,
-          totalAmount: { $sum: "$eventMembers.amount" },
-        },
-      },
-    ];
-
-    const result = await Event.aggregate(pipeline);
-
-    const eUser = await User.findById(event.user.toString());
-
-    // Calculate the total amount to distribute among event members
-    let totalAmountToDistribute =
-      event.totalDonationReceivedByHost + result[0].totalAmount;
-
-    // Distribute the total amount based on the division mode
-    if (event.percentageDivisionMode === "different") {
-      // Distribute based on different percentages for event members
-      event.eventMemberPercentages.forEach(async (memberPercentage) => {
-        const member = event.eventMembers.find(async (e) =>
-          e.user.equals(memberPercentage.user)
-        );
-
-        const dUser = await User.findById(member.user.toString());
-
-        if (member) {
-          const distributedAmount = distributeAmount(
-            totalAmountToDistribute,
-            memberPercentage.percentage
-          );
-
-          if (eUser) {
-            eUser.balance -= distributedAmount;
-
-            // Save the updated balance
-            await eUser.save();
-          }
-          if (dUser) {
-            dUser.balance += distributedAmount;
-
-            // Save the updated balance
-            await dUser.save();
-          }
-          totalAmountToDistribute -= distributedAmount;
-        }
-      });
-    } else if (event.percentageDivisionMode === "same") {
-      // Distribute based on the same percentage to all event members
-      const samePercentage = 100 / event.eventMembers.length;
-
-      event.eventMembers.forEach(async (member) => {
-        const distributedAmount = distributeAmount(
-          totalAmountToDistribute,
-          samePercentage
-        );
-        // member.amount += distributedAmount;
-
-        const dUser = await User.findById(member.user.toString());
-
-        if (eUser) {
-          eUser.balance -= distributedAmount;
-
-          // Save the updated balance
-          await eUser.save();
-        }
-        if (dUser) {
-          dUser.balance += distributedAmount;
-
-          // Save the updated balance
-          await dUser.save();
-        }
-
-        totalAmountToDistribute -= distributedAmount;
-      });
-    } else if (event.percentageDivisionMode === "ranking") {
-      // Distribute based on ranking percentages
-      event.eventMembers.forEach(async (member) => {
-        const rankingPercentage = event.rankingPercentages.find(
-          (rp) => rp.ranking === member.ranking
-        );
-
-        if (rankingPercentage) {
-          const distributedAmount = distributeAmount(
-            totalAmountToDistribute,
-            rankingPercentage.percentage
-          );
-          // member.amount += distributedAmount;
-
-          const dUser = await User.findById(member.user.toString());
-
-          if (eUser) {
-            eUser.balance -= distributedAmount;
-
-            // Save the updated balance
-            await eUser.save();
-          }
-          if (dUser) {
-            dUser.balance += distributedAmount;
-
-            // Save the updated balance
-            await dUser.save();
-          }
-
-          totalAmountToDistribute -= distributedAmount;
-        }
-      });
-    }
-
-    event.status = "COMPLETED";
-    await event.save();
-
-    res.status(200).json({ message: "Rankings verified successfully" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-// Define a function to distribute an amount based on percentages
-const distributeAmount = (amount, percentage) => {
-  return (amount * percentage) / 100;
 };
 
 exports.defineTotalDonation = async (eventData) => {
@@ -772,6 +591,82 @@ exports.getUserBids = async (req, res) => {
     });
 
     res.json(eventsWithEligibility);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.raiseDispute = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const { type, message, image, userId } = req.body;
+    const raisedBy = userId; // Assuming the user is authenticated
+
+    // Find the event
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    // Check if the user is a participant in the event
+    const isParticipant = event.eventMembers.some((member) =>
+      member.user.equals(userId)
+    );
+
+    // Check if the user has donated an amount
+    const hasDonated = event.donations.some((donation) =>
+      donation.user.equals(userId)
+    );
+
+    if (!isParticipant && !hasDonated) {
+      return res
+        .status(400)
+        .json({ error: "User is not eligible to raise a dispute" });
+    }
+
+    // Add the dispute
+    event.disputes.push({
+      raisedBy,
+      type,
+      message,
+      image,
+    });
+
+    // Save the event
+    await event.save();
+
+    res.status(201).json({ message: "Dispute raised successfully" });
+  } catch (e) {}
+};
+
+// To check and process disputes
+exports.checkAndProcessDisputes = async (req, res) => {
+  try {
+    // Find events where the last screenshot was uploaded 24 hours ago or more
+    const cutoffTime = moment().subtract(24, "hours");
+
+    const eventsToReleaseFunds = await Event.find({
+      screenshotUploadedAt: { $lte: cutoffTime },
+    });
+
+    for (const event of eventsToReleaseFunds) {
+      // Check if there are disputes raised for this event
+      if (event.disputes && event.disputes.length > 0) {
+        // If there are disputes, ask the host to re-upload the screenshot
+        // You can implement the logic to notify the host here
+      } else {
+        // If there are no disputes, release the funds
+        // Implement the logic to release the funds to the event members and host here
+
+        // Reset the lastScreenshotUploadTime to null
+        event.screenshotUploadedAt = null;
+        await event.save();
+      }
+    }
+
+    res.status(200).json({ message: "Cron job executed successfully" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });

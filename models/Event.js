@@ -71,6 +71,28 @@ const eventSchema = new mongoose.Schema(
         },
       },
     ],
+    disputes: [
+      {
+        raisedBy: {
+          type: ObjectId,
+          ref: "User",
+        },
+        type: {
+          type: String,
+        },
+        status: {
+          type: String,
+          enum: ["open", "resolved", "closed"],
+          default: "open",
+        },
+        message: {
+          type: String,
+        },
+        image: {
+          type: String,
+        },
+      },
+    ],
     winner: {
       type: ObjectId,
       ref: "User",
@@ -128,6 +150,9 @@ const eventSchema = new mongoose.Schema(
           type: Number,
         },
         image: {
+          type: String,
+        },
+        message: {
           type: String,
         },
         user: {

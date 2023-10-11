@@ -1,6 +1,7 @@
 const cron = require("node-cron");
 const Event = require("../models/Event");
 const User = require("../models/User");
+const { checkAndProcessDisputes } = require("../controllers/event");
 
 const updateEventStatus = async () => {
   const currentTime = new Date();
@@ -42,4 +43,10 @@ const updateEventStatus = async () => {
 cron.schedule("*/2 * * * * *", () => {
   console.log("Running event cron job...");
   updateEventStatus();
+});
+
+// Schedule a daily cron job at a specific time (e.g., 2 AM)
+cron.schedule("0 2 * * *", async () => {
+  console.log("Running event dispute cron job...");
+  checkAndProcessDisputes();
 });

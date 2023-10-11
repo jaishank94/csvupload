@@ -51,13 +51,13 @@ router.get(
   authUser,
   eventController.viewEventRankings
 );
-router.post(
-  "/admin/events/:eventId/verify-rankings",
-  authUser,
-  eventController.verifyEventRankings
-);
 
 router.put("/event/placeBid", authUser, eventController.placeBid);
 router.get("/event/my-bids/:userId", authUser, eventController.getUserBids);
+router.post(
+  "/events/:eventId/disputes",
+  authUser,
+  eventController.raiseDispute
+);
 
 module.exports = router;
