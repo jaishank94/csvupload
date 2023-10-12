@@ -231,7 +231,7 @@ exports.viewDisputes = async (req, res) => {
       { $unwind: "$disputes" },
       {
         $lookup: {
-          from: "users", // Assuming the name of your users collection
+          from: "users",
           localField: "disputes.raisedBy",
           foreignField: "_id",
           as: "user",
@@ -239,17 +239,32 @@ exports.viewDisputes = async (req, res) => {
       },
       { $unwind: "$user" },
       {
+        $lookup: {
+          from: "users",
+          localField: "user._id",
+          foreignField: "_id",
+          as: "eventUser",
+        },
+      },
+      { $unwind: "$eventUser" },
+      {
         $project: {
           _id: "$disputes._id",
           eventId: "$_id",
-          eventType: "disputes.type",
-          eventMessage: "disputes.message",
-          eventImage: "disputes.image",
+          eventType: "$disputes.type",
+          eventMessage: "$disputes.message",
+          eventImage: "$disputes.image",
           eventName: "$title",
           userId: "$user._id",
           userName: "$user.username",
           userFirstName: "$user.first_name",
           userLastName: "$user.last_name",
+          eventUserDetails: {
+            userId: "$eventUser._id",
+            username: "$eventUser.username",
+            firstName: "$eventUser.first_name",
+            lastName: "$eventUser.last_name",
+          },
         },
       },
     ]);
