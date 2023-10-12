@@ -259,11 +259,13 @@ exports.viewDisputes = async (req, res) => {
           userName: "$user.username",
           userFirstName: "$user.first_name",
           userLastName: "$user.last_name",
+          userPicture: "$user.picture",
           eventUserDetails: {
             userId: "$eventUser._id",
             username: "$eventUser.username",
             firstName: "$eventUser.first_name",
             lastName: "$eventUser.last_name",
+            picture: "$eventUser.picture",
           },
         },
       },
