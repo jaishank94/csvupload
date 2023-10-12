@@ -35,7 +35,8 @@ const eventSchema = new mongoose.Schema(
     },
     isAuctionTicket: {
       type: Boolean,
-      required: true,
+      default: false,
+      // required: true,
     },
     description: {
       type: String,
