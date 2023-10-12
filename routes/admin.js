@@ -12,4 +12,28 @@ router.post(
 );
 router.get("/disputes", authUser, adminController.viewDisputes);
 
+router.put(
+  "/event/:eventId/dispute/:disputeId/initiate-refund",
+  authUser,
+  adminController.initiateRefund
+);
+
+router.put(
+  "/event/:eventId/dispute/:disputeId/hold-event",
+  authUser,
+  adminController.holdEvent
+);
+
+router.put(
+  "/event/:eventId/dispute/:disputeId/close-dispute",
+  authUser,
+  adminController.closeDispute
+);
+
+router.put(
+  "/event/:eventId/dispute/:disputeId/ask-host-to-reupload",
+  authUser,
+  adminController.askHostToReuploadResults
+);
+
 module.exports = router;

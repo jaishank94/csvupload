@@ -79,6 +79,8 @@ const eventSchema = new mongoose.Schema(
         },
         type: {
           type: String,
+          enum: ["donation", "ticket", "event_result", "event", "others"],
+          default: "others",
         },
         status: {
           type: String,
@@ -100,7 +102,26 @@ const eventSchema = new mongoose.Schema(
     rankingsScreenshotUrl: {
       type: String,
     },
+    screenshotUploadedAt: {
+      type: Date,
+    },
+    resultScreenshots: [
+      {
+        requestedBy: {
+          type: String,
+        },
+        requestedAt: {
+          type: Date,
+        },
+        imageUrl: {
+          type: String,
+        },
+      },
+    ],
     verified: {
+      type: Boolean,
+    },
+    reUploadResult: {
       type: Boolean,
     },
     totalDonationReceived: {

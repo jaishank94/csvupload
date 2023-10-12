@@ -303,7 +303,7 @@ exports.submitRankings = async (req, res) => {
     // Find the event
     const event = await Event.findById(eventId)
       .where("status")
-      .in(["IN-PROGRESS"]);
+      .in(["IN-PROGRESS", "RESULT_VERIFICATION"]);
 
     if (!event) {
       return res.status(404).json({ error: "Event not found" });
@@ -330,6 +330,14 @@ exports.submitRankings = async (req, res) => {
     event.rankingsScreenshotUrl = screenshotUrl;
     event.screenshotUploadedAt = new Date();
 
+    event.resultScreenshots.push({
+      imageUrl: screenshotUrl, // Assuming the image URL is provided in the request body
+      requestedBy: hostId, // The admin/user requesting the re-upload
+      requestedAt: new Date(), // Timestamp of the request
+    });
+
+    event.reUploadResult = false;
+    event.status = "RESULT_VERIFICATION";
     await event.save();
 
     res.status(200).json({ message: "Rankings submitted successfully" });

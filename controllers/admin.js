@@ -260,3 +260,180 @@ exports.viewDisputes = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+// Initiate refund for a dispute
+exports.initiateRefund = async (req, res) => {
+  try {
+    const { eventId, disputeId, refundUserId, refundReciveUsrId } = req.params;
+
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    const dispute = event.disputes.id(disputeId);
+
+    if (!dispute) {
+      return res.status(404).json({ error: "Dispute not found" });
+    }
+
+    // Check the dispute type (e.g., "donation" or "ticket")
+    const disputeType = dispute.type;
+
+    if (disputeType === "donation") {
+      // Handle donation refund
+      // Check whom the user made a donation and refund the amount
+      // const donation = event.donations.id(disputeId);
+      const donationReceiverId = refundUserId;
+
+      const user = await User.findById(refundReciveUsrId);
+      const donationReceiver = await User.findById(donationReceiverId);
+
+      if (!user || !donationReceiver) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Refund the amount to the user who made the donation
+      user.balance += dispute.amount;
+      await user.save();
+
+      // Deduct the amount from the user who received the donation
+      donationReceiver.balance -= dispute.amount;
+      await donationReceiver.save();
+    } else if (disputeType === "ticket") {
+      // Handle ticket auction refund
+      // Refund from the host wallet
+      const hostUser = await User.findById(event.user);
+
+      const refundUser = await User.findById(refundUserId);
+
+      if (!hostUser || !refundUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Refund the ticket amount from the host
+      hostUser.balance -= dispute.amount;
+      await hostUser.save();
+
+      refundUser.balance += dispute.amount;
+      await refundUser.save();
+    } else {
+      // Handle other dispute types if necessary
+      // Your additional dispute resolution logic here
+    }
+
+    // Update the dispute status to 'resolved'
+    dispute.status = "resolved";
+
+    await event.save();
+
+    res.status(200).json({ message: "Refund initiated successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Hold the event for a dispute
+exports.holdEvent = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+
+    // Find the event
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    // Check the current status of the event
+    const currentStatus = event.status;
+
+    if (currentStatus === "ACTIVE" || currentStatus === "IN-PROGRESS") {
+      // Hold the event
+      event.status = "HOLD";
+      await event.save();
+      res.status(200).json({ message: "Event is now on hold" });
+    } else if (currentStatus === "HOLD") {
+      // Unhold the event (set it back to ACTIVE)
+      event.status = "ACTIVE";
+      await event.save();
+      res.status(200).json({ message: "Event is now active again" });
+    } else {
+      // Handle other status transitions if needed
+      res
+        .status(400)
+        .json({ error: "Invalid operation for the current event status" });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Close a dispute
+exports.closeDispute = async (req, res) => {
+  try {
+    const { eventId, disputeId } = req.params;
+
+    // Find the event
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    // Find the specific dispute within the event
+    const dispute = event.disputes.id(disputeId);
+
+    if (!dispute) {
+      return res.status(404).json({ error: "Dispute not found" });
+    }
+
+    // Update the dispute status to 'closed'
+    dispute.status = "closed";
+
+    // Save the changes to the event
+    await event.save();
+
+    res.status(200).json({ message: "Dispute closed successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Ask the host to reupload event results
+exports.askHostToReuploadResults = async (req, res) => {
+  try {
+    const { eventId, userId } = req.params;
+
+    // Find the event
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    // Check if the event status is "ACTIVE"
+    if (event.status !== "RESULT_VERIFICATION") {
+      return res.status(400).json({ error: "Event is not active" });
+    }
+
+    // Check if the user making the request is an admin or authorized to ask for re-upload
+    // You can add an authorization check here
+
+    // Update the event status to "RESULT_VERIFICATION"
+    event.status = "RESULT_VERIFICATION";
+    event.reUploadResult = true;
+
+    // Save the changes to the event
+    await event.save();
+
+    res.status(200).json({ message: "Host asked to re-upload event results" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
