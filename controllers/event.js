@@ -645,7 +645,7 @@ exports.raiseDispute = async (req, res) => {
     // Save the event
     await event.save();
 
-    res.status(201).json({ message: "Dispute raised successfully" });
+    res.status(200).json({ message: "Dispute raised successfully" });
   } catch (e) {}
 };
 
