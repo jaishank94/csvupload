@@ -13,7 +13,7 @@ const updateEventStatus = async () => {
     });
 
     expiredEvents.forEach(async (event) => {
-      event.status = "IN-PROGRESS";
+      event.status = "IN_PROGRESS";
 
       event.bids.sort((a, b) => b.amount - a.amount);
       event.eligibleBids = event.bids.slice(

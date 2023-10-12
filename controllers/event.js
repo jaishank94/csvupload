@@ -303,7 +303,7 @@ exports.submitRankings = async (req, res) => {
     // Find the event
     const event = await Event.findById(eventId)
       .where("status")
-      .in(["IN-PROGRESS", "RESULT_VERIFICATION"]);
+      .in(["IN_PROGRESS", "RESULT_VERIFICATION"]);
 
     if (!event) {
       return res.status(404).json({ error: "Event not found" });

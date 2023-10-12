@@ -350,7 +350,7 @@ exports.holdEvent = async (req, res) => {
     // Check the current status of the event
     const currentStatus = event.status;
 
-    if (currentStatus === "ACTIVE" || currentStatus === "IN-PROGRESS") {
+    if (currentStatus === "ACTIVE" || currentStatus === "IN_PROGRESS") {
       // Hold the event
       event.status = "HOLD";
       await event.save();
