@@ -640,6 +640,7 @@ exports.raiseDispute = async (req, res) => {
       type,
       message,
       image,
+      createdAt: new Date(),
     });
 
     // Save the event
