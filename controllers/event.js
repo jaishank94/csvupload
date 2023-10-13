@@ -721,7 +721,7 @@ exports.getDisputeDetails = async (req, res) => {
         createdAt: dispute.createdAt,
         raisedBy: {
           id: disputeUser._id,
-          image: disputeUser.images,
+          image: disputeUser.image,
           username: disputeUser.username,
           firstname: disputeUser.first_name,
           lastname: disputeUser.last_name,
