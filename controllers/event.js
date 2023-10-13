@@ -688,7 +688,9 @@ exports.getDisputeDetails = async (req, res) => {
     const { eventId, disputeId } = req.params;
 
     // Find the event
-    const event = await Event.findById(eventId).populate("user");
+    const event = await Event.findById(eventId)
+      .populate("user")
+      .populate("game");
 
     if (!event) {
       return res.status(404).json({ error: "Event not found" });
@@ -709,22 +711,14 @@ exports.getDisputeDetails = async (req, res) => {
     }
 
     res.json({
-      event: {
-        title: event.title,
-        user: {
-          id: event.user._id,
-          image: event.user.images,
-          username: event.user.username,
-          firstname: event.user.first_name,
-          lastname: event.user.last_name,
-        },
-      },
+      event: event,
       dispute: {
         id: dispute._id,
         type: dispute.type,
         status: dispute.status,
         message: dispute.message,
         image: dispute.image,
+        createdAt: dispute.createdAt,
         raisedBy: {
           id: disputeUser._id,
           image: disputeUser.images,
