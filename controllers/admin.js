@@ -262,7 +262,7 @@ exports.viewDisputes = async (req, res) => {
           eventId: "$_id",
           eventName: "$title",
           eventCreatedAt: "$createdAt",
-          eventType: "$disputes.type",
+          disputeType: "$disputes.type",
           disputeMessage: "$disputes.message",
           disputeImage: "$disputes.image",
           disputeCreatedAt: "$disputes.createdAt",
