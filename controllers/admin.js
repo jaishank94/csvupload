@@ -266,6 +266,7 @@ exports.viewDisputes = async (req, res) => {
           disputeMessage: "$disputes.message",
           disputeImage: "$disputes.image",
           disputeCreatedAt: "$disputes.createdAt",
+          disputeStatus: "$disputes.status",
           eventImage: "$images",
           gameName: "$gameInfo.name",
           disputeRaisedBy: {
