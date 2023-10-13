@@ -53,7 +53,16 @@ router.get(
 );
 
 router.put("/event/placeBid", authUser, eventController.placeBid);
-router.get("/event/my-bids/:userId", authUser, eventController.getUserBids);
+router.get(
+  "/event/my-bids/:userId",
+  authUser,
+  eventController.getDisputeDetails
+);
+router.get(
+  "/event/dispute/:disputeId/:eventId",
+  authUser,
+  eventController.getUserBids
+);
 router.post(
   "/events/:eventId/disputes",
   authUser,

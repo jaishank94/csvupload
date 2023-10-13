@@ -680,3 +680,61 @@ exports.checkAndProcessDisputes = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+exports.getDisputeDetails = async (req, res) => {
+  try {
+    // Get event ID and dispute ID from the request
+    const { eventId, disputeId } = req.params;
+
+    // Find the event
+    const event = await Event.findById(eventId).populate("user");
+
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    // Find the dispute within the event
+    const dispute = event.disputes.id(disputeId);
+
+    if (!dispute) {
+      return res.status(404).json({ error: "Dispute not found" });
+    }
+
+    // Find the user who raised the dispute
+    const disputeUser = await User.findById(dispute.raisedBy);
+
+    if (!disputeUser) {
+      return res.status(404).json({ error: "Dispute User not found" });
+    }
+
+    res.json({
+      event: {
+        title: event.title,
+        user: {
+          id: event.user._id,
+          image: event.user.images,
+          username: event.user.username,
+          firstname: event.user.first_name,
+          lastname: event.user.last_name,
+        },
+      },
+      dispute: {
+        id: dispute._id,
+        type: dispute.type,
+        status: dispute.status,
+        message: dispute.message,
+        image: dispute.image,
+        raisedBy: {
+          id: disputeUser._id,
+          image: disputeUser.images,
+          username: disputeUser.username,
+          firstname: disputeUser.first_name,
+          lastname: disputeUser.last_name,
+        },
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
