@@ -6,6 +6,11 @@ const { readdirSync } = require("fs");
 const dotenv = require("dotenv");
 const serverless = require("serverless-http");
 const userRoute = require("./routes/user");
+const stripe = require("stripe")(
+  "sk_test_51M6UVmSA1CggwQAXcM5Pd85IGKpJbvipXI3Vc8mr466lFEH49hXU5nqjcvnStjeRQveIk2wzghrUNrulpMxoAem700CCMkWZbz"
+);
+const paypal = require("paypal-rest-sdk");
+
 dotenv.config();
 
 // const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY, {
@@ -20,6 +25,12 @@ app.use(
     useTempFiles: true,
   })
 );
+
+paypal.configure({
+  mode: process.env.PAYPAL_MODE,
+  client_id: process.env.PAYPAL_CLIENT_ID,
+  client_secret: process.env.PAYPAL_CLIENT_SECRET,
+});
 
 app.get("/hello", async (req, res) => {
   res.send({ msg: "Hello World" });
