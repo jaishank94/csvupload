@@ -295,7 +295,8 @@ exports.viewDisputes = async (req, res) => {
 // Initiate refund for a dispute
 exports.initiateRefund = async (req, res) => {
   try {
-    const { eventId, disputeId, refundUserId, refundReciveUsrId } = req.params;
+    const { eventId, disputeId, refundUserId, refundReciveUsrId, amount } =
+      req.body;
 
     const event = await Event.findById(eventId);
 
@@ -326,11 +327,11 @@ exports.initiateRefund = async (req, res) => {
       }
 
       // Refund the amount to the user who made the donation
-      user.balance += dispute.amount;
+      user.balance += amount;
       await user.save();
 
       // Deduct the amount from the user who received the donation
-      donationReceiver.balance -= dispute.amount;
+      donationReceiver.balance -= amount;
       await donationReceiver.save();
     } else if (disputeType === "ticket") {
       // Handle ticket auction refund
@@ -344,10 +345,10 @@ exports.initiateRefund = async (req, res) => {
       }
 
       // Refund the ticket amount from the host
-      hostUser.balance -= dispute.amount;
+      hostUser.balance -= amount;
       await hostUser.save();
 
-      refundUser.balance += dispute.amount;
+      refundUser.balance += amount;
       await refundUser.save();
     } else {
       // Handle other dispute types if necessary
