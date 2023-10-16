@@ -16,7 +16,7 @@ const walletController = {
     const { address, amount } = req.body;
 
     try {
-      const web3 = await connectWallet(address);
+      // const web3 = await connectWallet(address);
 
       // Perform necessary contract interactions to add balance
 
