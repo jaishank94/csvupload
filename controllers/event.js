@@ -296,9 +296,9 @@ exports.makeDonation = async (req, res) => {
 exports.submitRankings = async (req, res) => {
   try {
     const { eventId } = req.params;
-    const { rankings, screenshotUrl, usrId } = req.body;
+    const { rankings, screenshotUrl, userId } = req.body;
     // const hostId = req.user._id;
-    const hostId = usrId;
+    const hostId = userId;
 
     // Find the event
     const event = await Event.findById(eventId)
@@ -310,7 +310,9 @@ exports.submitRankings = async (req, res) => {
     }
 
     // Check if the user submitting rankings is the host of the event
+    console.log(event.user, hostId);
     if (!event.user.equals(hostId)) {
+      // if (event.user.equals !== hostId) {
       return res
         .status(403)
         .json({ error: "Only the event host can submit rankings" });
