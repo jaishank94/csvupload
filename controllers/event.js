@@ -3,6 +3,7 @@ const User = require("../models/User");
 const Game = require("../models/Game");
 const mongoose = require("mongoose");
 const moment = require("moment");
+const { verifyEventRankings } = require("./admin");
 
 // Create a new event
 exports.createEvent = async (req, res) => {
@@ -660,20 +661,20 @@ exports.checkAndProcessDisputes = async (req, res) => {
 
     const eventsToReleaseFunds = await Event.find({
       screenshotUploadedAt: { $lte: cutoffTime },
+      status: "RESULT_VERIFICATION",
     });
 
     for (const event of eventsToReleaseFunds) {
       // Check if there are disputes raised for this event
       if (event.disputes && event.disputes.length > 0) {
-        // If there are disputes, ask the host to re-upload the screenshot
-        // You can implement the logic to notify the host here
-      } else {
-        // If there are no disputes, release the funds
-        // Implement the logic to release the funds to the event members and host here
+        // Filter open disputes
+        const openDisputes = event.disputes.filter(
+          (dispute) => dispute.status === "open"
+        );
 
-        // Reset the lastScreenshotUploadTime to null
-        event.screenshotUploadedAt = null;
-        await event.save();
+        if (openDisputes.length === 0) {
+          verifyEventRankings(event._id);
+        }
       }
     }
 

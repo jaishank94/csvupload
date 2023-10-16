@@ -39,12 +39,14 @@ exports.adminLogin = async (req, res) => {
   }
 };
 
-exports.verifyEventRankings = async (req, res) => {
+exports.verifyEventRankings = async (eventId) => {
   try {
-    const { eventId } = req.params;
+    // const { eventId } = req.params;
 
     // Find the event
-    const event = await Event.findById(eventId);
+    const event = await Event.findById(eventId)
+      .where("status")
+      .in(["RESULT_VERIFICATION"]);
 
     if (!event) {
       return res.status(404).json({ error: "Event not found" });

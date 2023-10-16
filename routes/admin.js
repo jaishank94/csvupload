@@ -5,11 +5,11 @@ const { authUser } = require("../middlwares/auth");
 const router = express.Router();
 
 router.post("/admin-login", adminController.adminLogin);
-router.post(
-  "/admin/events/:eventId/verify-rankings",
-  authUser,
-  adminController.verifyEventRankings
-);
+// router.post(
+//   "/admin/events/:eventId/verify-rankings",
+//   authUser,
+//   adminController.verifyEventRankings
+// );
 router.get("/disputes", authUser, adminController.viewDisputes);
 
 router.put(
