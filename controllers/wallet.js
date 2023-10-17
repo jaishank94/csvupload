@@ -13,14 +13,15 @@ const connectWallet = async (address) => {
 
 const walletController = {
   addBalance: async (req, res) => {
-    const { address, amount } = req.body;
+    const { address, userId, amount } = req.body;
 
     try {
       // const web3 = await connectWallet(address);
 
       // Perform necessary contract interactions to add balance
 
-      const user = await User.findOne({ address });
+      // const user = await User.findOne({ address });
+      const user = await User.findById(userId);
       user.balance += amount;
       user.transactions.push({
         type: "deposit",

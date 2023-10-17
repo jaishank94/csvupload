@@ -177,9 +177,16 @@ const userSchema = mongoose.Schema(
     },
     transactions: [
       {
-        type: String, // 'deposit' or 'withdrawal'
-        amount: Number,
-        timestamp: Date,
+        type: {
+          type: String,
+          enum: ["deposit", "withdrawal"],
+        }, // 'deposit' or 'withdrawal'
+        amount: {
+          type: Number,
+        },
+        timestamp: {
+          type: Date,
+        },
       },
     ],
   },
