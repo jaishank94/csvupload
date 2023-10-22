@@ -28,7 +28,7 @@ exports.adminLogin = async (req, res) => {
       last_name: adminUser.last_name,
       gender: adminUser.gender,
       balance: adminUser.balance,
-      token: token,
+      accessToken: token,
       isAdmin: true,
       verified: adminUser.verified,
     });
