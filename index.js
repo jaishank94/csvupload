@@ -64,9 +64,6 @@ app.get("/hello", async (req, res) => {
 // });
 
 // Start the cron job
-require("./crons/auctionCron.js");
-require("./crons/paymentCron.js");
-require("./crons/eventCron.js");
 
 //routes
 readdirSync("./routes").map((r) => app.use("/", require("./routes/" + r)));
