@@ -34,13 +34,23 @@ exports.uploadData = async (req, res) => {
   try {
     const buffer = req.file.buffer.toString();
     const records = [];
+    let schemaFields = {};
 
     fs.createReadStream(buffer)
       .pipe(csvParser())
       .on("data", (row) => {
         records.push(row);
+        // Collect unique keys (columns) from the CSV as fields for the schema
+        for (const key in row) {
+          schemaFields[key] = String; // You can set the data type as needed
+        }
       })
       .on("end", async () => {
+        // Define a dynamic schema based on the unique keys (columns) in the CSV
+        const dynamicSchema = new mongoose.Schema(schemaFields);
+        // Create a new model based on the dynamic schema
+        const DataModel = mongoose.model("Data", dynamicSchema);
+
         const uniqueField = "name"; // Specify the field to determine uniqueness
 
         const bulkOps = records.map((record) => ({
@@ -51,7 +61,7 @@ exports.uploadData = async (req, res) => {
           },
         }));
 
-        await Data.bulkWrite(bulkOps);
+        await DataModel.bulkWrite(bulkOps);
 
         // Process the data and handle categories and sub-categories
         await CategoryController.processData(records);
