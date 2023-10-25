@@ -7,12 +7,10 @@ const User = require("../models/User");
 const Code = require("../models/Code");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const cloudinary = require("cloudinary");
 const { generateToken } = require("../helpers/tokens");
 const { sendVerificationEmail, sendResetCode } = require("../helpers/mailer");
 const generateCode = require("../helpers/generateCode");
 const mongoose = require("mongoose");
-const passport = require("passport");
 const dotenv = require("dotenv");
 
 exports.register = async (req, res) => {
