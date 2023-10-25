@@ -65,7 +65,7 @@ exports.uploadData = async (req, res) => {
         // }));
         // await Data.bulkWrite(bulkOps);
 
-        for (const record of records) {
+        for (const record of response) {
           // Create or update the data entry
           await Data.updateOne(
             { [uniqueField]: record[uniqueField] }, // Replace with your unique field
