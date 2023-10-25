@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const mongoosePaginate = require("mongoose-paginate-v2");
 
 const { ObjectId } = mongoose.Schema;
 
@@ -25,5 +26,8 @@ const dataSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Apply the pagination plugin
+dataSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model("Data", dataSchema);
