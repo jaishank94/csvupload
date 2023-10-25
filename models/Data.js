@@ -4,14 +4,16 @@ const { ObjectId } = mongoose.Schema;
 
 const dataSchema = new mongoose.Schema(
   {
-    data: {
+    name: {
       type: String,
       required: true,
+    },
+    data: {
+      type: String,
     },
     user: {
       type: ObjectId,
       ref: "User",
-      required: true,
     },
     status: {
       type: String,

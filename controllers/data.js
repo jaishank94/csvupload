@@ -33,13 +33,13 @@ exports.getData = async (req, res) => {
 
 exports.uploadData = async (req, res) => {
   try {
-    const buffer = req.file.buffer.toString();
+    // const buffer = req.file.buffer.toString();
     const records = [];
     let schemaFields = {};
 
     csv()
       .fromFile(req.file.path)
-      .then(response, async () => {
+      .then(async (response) => {
         records.push(response);
         // Collect unique keys (columns) from the CSV as fields for the schema
         for (const key in response) {
@@ -54,18 +54,20 @@ exports.uploadData = async (req, res) => {
 
         const uniqueField = "name"; // Specify the field to determine uniqueness
 
-        const bulkOps = records.map((record) => ({
-          updateOne: {
-            filter: { [uniqueField]: record[uniqueField] },
-            update: { $set: record },
-            upsert: true, // Insert if not found, update if found
-          },
-        }));
+        const result1 = await Data.insertMany(response);
+
+        // const bulkOps = response.map((record) => ({
+        //   updateOne: {
+        //     filter: {},
+        //     update: { $set: record },
+        //     upsert: true, // Insert if not found, update if found
+        //   },
+        // }));
 
         await Data.bulkWrite(bulkOps);
 
         // Process the data and handle categories and sub-categories
-        await CategoryController.processData(records);
+        await CategoryController.processData(response);
 
         res.status(200).send("CSV data uploaded successfully.");
       });
