@@ -96,11 +96,11 @@ mongoose
   .then(() => console.log("database connected successfully"))
   .catch((err) => console.log("error connecting to mongodb", err));
 
-if (process.env.ENVIRONMENT === "production") {
-  exports.handler = serverless(app);
-} else {
-  const PORT = process.env.PORT || 8000;
-  app.listen(PORT, () => {
-    console.log(`server is running on port ${PORT}..`);
-  });
-}
+// if (process.env.ENVIRONMENT === "production") {
+//   exports.handler = serverless(app);
+// } else {
+const PORT = process.env.PORT || 8000;
+app.listen(PORT, () => {
+  console.log(`server is running on port ${PORT}..`);
+});
+// }

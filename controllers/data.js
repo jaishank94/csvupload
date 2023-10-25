@@ -27,6 +27,7 @@ exports.getData = async (req, res) => {
 
     res.json(result);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: "Error retrieving data" });
   }
 };
@@ -42,7 +43,7 @@ exports.uploadData = async (req, res) => {
       .then(async (response) => {
         records.push(response);
         // Collect unique keys (columns) from the CSV as fields for the schema
-        for (const key in response) {
+        for (const key of Object.keys(response[0])) {
           schemaFields[key] = String; // You can set the data type as needed
         }
 
@@ -54,28 +55,30 @@ exports.uploadData = async (req, res) => {
 
         const uniqueField = "name"; // Specify the field to determine uniqueness
 
-        await Data.insertMany(response);
+        // await Data.insertMany(response);
 
-        // const bulkOps = response.map((record) => ({
-        //   updateOne: {
-        //     filter: { [uniqueField]: record[uniqueField] },
-        //     update: { $set: record },
-        //     upsert: true, // Insert if not found, update if found
-        //   },
-        // }));
-        // await Data.bulkWrite(bulkOps);
+        const bulkOps = response.map((record) => ({
+          updateOne: {
+            filter: { [uniqueField]: record[uniqueField] },
+            update: { $set: record },
+            upsert: true, // Insert if not found, update if found
+          },
+        }));
+        await Data.bulkWrite(bulkOps);
+        // let i = 1;
+        // for (const record of response) {
+        //   console.log(record);
+        //   // Create or update the data entry
+        //   await Data.updateOne(
+        //     { [uniqueField]: record[uniqueField] }, // Replace with your unique field
+        //     { $set: record },
+        //     { upsert: true }
+        //   );
 
-        for (const record of response) {
-          // Create or update the data entry
-          await Data.updateOne(
-            { [uniqueField]: record[uniqueField] }, // Replace with your unique field
-            { $set: record },
-            { upsert: true }
-          );
-
-          // Process the data and handle categories and sub-categories
-          await CategoryController.processData(response);
-        }
+        //   // Process the data and handle categories and sub-categories
+        //   i++;
+        // }
+        await CategoryController.processData(response);
         res.status(200).send("CSV data uploaded successfully.");
       });
   } catch (error) {
