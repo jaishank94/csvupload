@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 const ObjectId = Schema.Types.ObjectId;
 const CategoryController = require("./category");
+const Data = require("../models/Data");
 
 // Retrieve data with pagination and search
 exports.getData = async (req, res) => {
@@ -31,13 +32,6 @@ exports.getData = async (req, res) => {
 
 exports.uploadData = async (req, res) => {
   try {
-    if (!client.isConnected()) {
-      await client.connect();
-    }
-
-    const database = client.db();
-    const collection = database.collection("your-collection-name");
-
     const buffer = req.file.buffer.toString();
     const records = [];
 
@@ -57,7 +51,7 @@ exports.uploadData = async (req, res) => {
           },
         }));
 
-        await collection.bulkWrite(bulkOps);
+        await Data.bulkWrite(bulkOps);
 
         // Process the data and handle categories and sub-categories
         await CategoryController.processData(records);
