@@ -39,7 +39,7 @@ mongoose
 if (process.env.ENVIRONMENT === "production") {
   exports.handler = serverless(app);
 } else {
-  const PORT = process.env.PORT || 8000;
+  const PORT = process.env.PORT || 8001;
   app.listen(PORT, () => {
     console.log(`server is running on port ${PORT}..`);
   });
