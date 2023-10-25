@@ -11,6 +11,8 @@ const stripe = require("stripe")(
 );
 const paypal = require("paypal-rest-sdk");
 
+const multer = require("multer");
+
 dotenv.config();
 
 // const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY, {
@@ -68,6 +70,17 @@ app.get("/hello", async (req, res) => {
 //routes
 readdirSync("./routes").map((r) => app.use("/", require("./routes/" + r)));
 // app.use('/', userRoute);
+
+var storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "./public/uploads");
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
+
+var upload = multer({ storage: storage });
 
 //database
 mongoose.set("strictQuery", true);

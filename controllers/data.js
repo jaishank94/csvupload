@@ -3,6 +3,7 @@ const { Schema } = mongoose;
 const ObjectId = Schema.Types.ObjectId;
 const CategoryController = require("./category");
 const Data = require("../models/Data");
+const csv = require("csvtojson");
 
 // Retrieve data with pagination and search
 exports.getData = async (req, res) => {
@@ -36,20 +37,20 @@ exports.uploadData = async (req, res) => {
     const records = [];
     let schemaFields = {};
 
-    fs.createReadStream(buffer)
-      .pipe(csvParser())
-      .on("data", (row) => {
-        records.push(row);
+    csv()
+      .fromFile(req.file.path)
+      .then(response, async () => {
+        records.push(response);
         // Collect unique keys (columns) from the CSV as fields for the schema
-        for (const key in row) {
+        for (const key in response) {
           schemaFields[key] = String; // You can set the data type as needed
         }
-      })
-      .on("end", async () => {
-        // Define a dynamic schema based on the unique keys (columns) in the CSV
-        const dynamicSchema = new mongoose.Schema(schemaFields);
-        // Create a new model based on the dynamic schema
-        const DataModel = mongoose.model("Data", dynamicSchema);
+
+        // Update the schema with the new fields from the CSV
+        const schema = Data.schema;
+        for (const key in schemaFields) {
+          schema.add({ [key]: schemaFields[key] });
+        }
 
         const uniqueField = "name"; // Specify the field to determine uniqueness
 
@@ -61,7 +62,7 @@ exports.uploadData = async (req, res) => {
           },
         }));
 
-        await DataModel.bulkWrite(bulkOps);
+        await Data.bulkWrite(bulkOps);
 
         // Process the data and handle categories and sub-categories
         await CategoryController.processData(records);
