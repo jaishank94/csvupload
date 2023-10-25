@@ -1,14 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 const ObjectId = Schema.Types.ObjectId;
-
-const dataSchema = new Schema({
-  name: String,
-  valuation: Number,
-  // Add other fields here
-});
-
-const Data = mongoose.model("Data", dataSchema);
+const CategoryController = require("./category");
 
 // Retrieve data with pagination and search
 exports.getData = async (req, res) => {
@@ -65,6 +58,10 @@ exports.uploadData = async (req, res) => {
         }));
 
         await collection.bulkWrite(bulkOps);
+
+        // Process the data and handle categories and sub-categories
+        await CategoryController.processData(records);
+
         res.status(200).send("CSV data uploaded successfully.");
       });
   } catch (error) {
