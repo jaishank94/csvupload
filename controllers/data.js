@@ -54,21 +54,28 @@ exports.uploadData = async (req, res) => {
 
         const uniqueField = "name"; // Specify the field to determine uniqueness
 
-        const result1 = await Data.insertMany(response);
+        await Data.insertMany(response);
 
         // const bulkOps = response.map((record) => ({
         //   updateOne: {
-        //     filter: {},
+        //     filter: { [uniqueField]: record[uniqueField] },
         //     update: { $set: record },
         //     upsert: true, // Insert if not found, update if found
         //   },
         // }));
+        // await Data.bulkWrite(bulkOps);
 
-        await Data.bulkWrite(bulkOps);
+        for (const record of records) {
+          // Create or update the data entry
+          await Data.updateOne(
+            { [uniqueField]: record[uniqueField] }, // Replace with your unique field
+            { $set: record },
+            { upsert: true }
+          );
 
-        // Process the data and handle categories and sub-categories
-        await CategoryController.processData(response);
-
+          // Process the data and handle categories and sub-categories
+          await CategoryController.processData(response);
+        }
         res.status(200).send("CSV data uploaded successfully.");
       });
   } catch (error) {
