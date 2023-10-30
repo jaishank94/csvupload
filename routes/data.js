@@ -23,6 +23,7 @@ var storage = multer.diskStorage({
 var upload = multer({ storage: storage });
 
 router.get("/data", dataController.getData);
+router.get("/category-data", dataController.getCategoryData);
 router.post(
   "/upload-data",
   upload.single("csvFile"),

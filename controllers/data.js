@@ -3,8 +3,35 @@ const { Schema } = mongoose;
 const ObjectId = Schema.Types.ObjectId;
 const CategoryController = require("./category");
 const Data = require("../models/Data");
+const Category = require("../models/Category");
 const csv = require("csvtojson");
 
+// Retrieve category data with pagination and search
+exports.getCategoryData = async (req, res) => {
+  try {
+    const { page, limit, search } = req.query;
+    const query = {};
+
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: "i" } }, // Case-insensitive name search
+        { valuation: parseFloat(search) || 0 }, // Search for numbers in valuation
+      ];
+    }
+
+    const options = {
+      page: parseInt(page) || 1,
+      limit: parseInt(limit) || 10,
+    };
+
+    const result = await Category.paginate(query, options);
+
+    res.json(result);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Error retrieving data" });
+  }
+};
 // Retrieve data with pagination and search
 exports.getData = async (req, res) => {
   try {
