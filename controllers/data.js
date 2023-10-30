@@ -15,7 +15,7 @@ exports.getCategoryData = async (req, res) => {
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: "i" } }, // Case-insensitive name search
-        { valuation: parseFloat(search) || 0 }, // Search for numbers in valuation
+        { "subCategories.name": { $regex: new RegExp(search, "i") } },
       ];
     }
 
@@ -24,7 +24,8 @@ exports.getCategoryData = async (req, res) => {
       limit: parseInt(limit) || 10,
     };
 
-    const result = await Category.paginate(query, options);
+    // const result = await Category.paginate(query, options);
+    const result = await Category.find(query);
 
     res.json(result);
   } catch (error) {
@@ -32,6 +33,7 @@ exports.getCategoryData = async (req, res) => {
     res.status(500).json({ error: "Error retrieving data" });
   }
 };
+
 // Retrieve data with pagination and search
 exports.getData = async (req, res) => {
   try {
