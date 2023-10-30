@@ -37,14 +37,31 @@ exports.getCategoryData = async (req, res) => {
 // Retrieve data with pagination and search
 exports.getData = async (req, res) => {
   try {
-    const { page, limit, search } = req.query;
+    const { page, limit, search, category, subcategory } = req.query;
     const query = {};
 
     if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: "i" } }, // Case-insensitive name search
-        { valuation: parseFloat(search) || 0 }, // Search for numbers in valuation
-      ];
+      query.$or = [];
+
+      // Add conditions for searching dynamic columns here
+      // For example, assuming dynamic column names are provided in the "search" parameter
+      // and their values are provided in the "searchValue" parameter
+      const searchColumns = search.split(",");
+      const searchValues = searchValue.split(",");
+
+      for (let i = 0; i < searchColumns.length; i++) {
+        const searchColumn = searchColumns[i];
+        const searchValue = searchValues[i];
+        query[searchColumn] = { $regex: new RegExp(searchValue, "i") };
+      }
+    }
+
+    if (category) {
+      query["category"] = category;
+    }
+
+    if (subcategory) {
+      query["subcategory"] = subcategory;
     }
 
     const options = {
