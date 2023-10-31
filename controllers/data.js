@@ -103,6 +103,11 @@ exports.uploadData = async (req, res) => {
             upsert: true, // Insert if not found, update if found
           },
         }));
+
+        // Find and delete records that are not present in the CSV
+        const uniqueValuesInCSV = response.map((record) => record[uniqueField]);
+        await Data.deleteMany({ [uniqueField]: { $nin: uniqueValuesInCSV } });
+
         await Data.bulkWrite(bulkOps);
         // let i = 1;
         // for (const record of response) {
