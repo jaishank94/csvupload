@@ -37,14 +37,15 @@ exports.getCategoryData = async (req, res) => {
 // Retrieve data with pagination and search
 exports.getData = async (req, res) => {
   try {
-    const { page, limit, search, category, subcategory } = req.body;
+    const { page, limit, search, category, subcategory, sortField, sortOrder } =
+      req.body;
     const query = {};
 
     if (search && Array.isArray(search)) {
       search.forEach((column) => {
         // For each key-value pair in dynamicColumns, add a regex search condition
         for (const key in column) {
-          query[key] = { $regex: new RegExp(column[key], "i") };
+          query[key] = { $regex: `^${column[key]}`, $options: "i" };
         }
       });
     }
@@ -60,9 +61,16 @@ exports.getData = async (req, res) => {
     const options = {
       page: parseInt(page) || 1,
       limit: parseInt(limit) || 10,
+      sort: {
+        [sortField || ""]: sortOrder === "desc" ? -1 : 1,
+      },
     };
 
     const result = await Data.paginate(query, options);
+
+    // Add total count to the result object
+    const totalCount = await Data.countDocuments(query);
+    result.totalCount = totalCount;
 
     res.json(result);
   } catch (error) {
