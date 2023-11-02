@@ -66,6 +66,8 @@ exports.getData = async (req, res) => {
       },
     };
 
+    console.log("JSON.stringify(query)", query);
+
     const result = await Data.paginate(query, options);
 
     // Add total count to the result object
