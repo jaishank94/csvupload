@@ -41,13 +41,31 @@ exports.getData = async (req, res) => {
       req.body;
     const query = {};
 
-    if (search && Array.isArray(search)) {
+    // if (search && Array.isArray(search)) {
+    //   search.forEach((column) => {
+    //     // For each key-value pair in dynamicColumns, add a regex search condition
+    //     for (const key in column) {
+    //       query[key] = { $regex: `^${column[key]}`, $options: "i" };
+    //     }
+    //   });
+    // }
+
+    if (search && Array.isArray(search) && search.length > 0) {
+      const andConditions = [];
+
       search.forEach((column) => {
-        // For each key-value pair in dynamicColumns, add a regex search condition
+        const orConditions = [];
+
         for (const key in column) {
-          query[key] = { $regex: `^${column[key]}`, $options: "i" };
+          orConditions.push({
+            [key]: { $regex: `^${column[key]}`, $options: "i" },
+          });
         }
+
+        andConditions.push({ $and: orConditions });
       });
+
+      query.$and = andConditions;
     }
 
     if (category) {
@@ -65,8 +83,6 @@ exports.getData = async (req, res) => {
         [sortField || ""]: sortOrder === "desc" ? -1 : 1,
       },
     };
-
-    console.log("JSON.stringify(query)", query);
 
     const result = await Data.paginate(query, options);
 
