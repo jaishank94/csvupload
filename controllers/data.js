@@ -41,48 +41,28 @@ exports.getData = async (req, res) => {
       req.body;
     const query = {};
 
-    // if (search && Array.isArray(search)) {
-    //   search.forEach((column) => {
-    //     // For each key-value pair in dynamicColumns, add a regex search condition
-    //     for (const key in column) {
-    //       query[key] = { $regex: `^${column[key]}`, $options: "i" };
-    //     }
-    //   });
-    // }
-
-    if (search && Array.isArray(search) && search.length > 0) {
-      const andConditions = [];
-
-      search.forEach((column) => {
-        const orConditions = [];
-
-        for (const key in column) {
-          orConditions.push({
-            [key]: { $regex: `^${column[key]}`, $options: "i" },
-          });
-        }
-
-        andConditions.push({ $and: orConditions });
+    if (search && Array.isArray(search)) {
+      // Initialize the query with logical AND conditions
+      query.$and = search.map((column) => {
+        // Initialize each condition with logical AND conditions for multiple key-value pairs
+        return {
+          $and: Object.entries(column).map(([key, value]) => ({
+            [key]: value, // Perform an exact match
+          })),
+        };
       });
-
-      query.$and = andConditions;
-    }
-
-    if (category) {
-      query["category"] = category;
-    }
-
-    if (subcategory) {
-      query["subcategory"] = subcategory;
     }
 
     const options = {
       page: parseInt(page) || 1,
       limit: parseInt(limit) || 10,
       sort: {
-        [sortField || ""]: sortOrder === "desc" ? -1 : 1,
+        [sortField || "Valuation"]: -1,
       },
     };
+
+    console.log("options", options);
+    console.log("query", query);
 
     const result = await Data.paginate(query, options);
 
