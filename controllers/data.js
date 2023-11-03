@@ -47,7 +47,7 @@ exports.getData = async (req, res) => {
         // Initialize each condition with logical AND conditions for multiple key-value pairs
         return {
           $and: Object.entries(column).map(([key, value]) => ({
-            [key]: { $regex: `^${value}`, $options: "i" }, // Perform an exact match
+            [key]: { $regex: value, $options: "i" }, // Perform an exact match
           })),
         };
       });
