@@ -12,6 +12,51 @@ const dataSchema = new mongoose.Schema(
     data: {
       type: String,
     },
+    Employees: {
+      type: String,
+    },
+    Founded: {
+      type: Date,
+    },
+    Founders: {
+      type: String,
+    },
+    Valuation: {
+      type: Number,
+    },
+    Website: {
+      type: String,
+    },
+    LastFundingType: {
+      type: String,
+    },
+    LastFundingDate: {
+      type: Date,
+    },
+    LastFundingAmountMUSD: {
+      type: Number,
+    },
+    Headquarters: {
+      type: String,
+    },
+    Industries: {
+      type: String,
+    },
+    Description: {
+      type: String,
+    },
+    TotalFundingAmountMUSD: {
+      type: Number,
+    },
+    Investors: {
+      type: String,
+    },
+    category: {
+      type: String,
+    },
+    subcategory: {
+      type: String,
+    },
     user: {
       type: ObjectId,
       ref: "User",
