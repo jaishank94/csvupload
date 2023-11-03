@@ -41,7 +41,7 @@ exports.getData = async (req, res) => {
       req.body;
     const query = {};
 
-    if (search && Array.isArray(search)) {
+    if (search && Array.isArray(search) && search.length > 0) {
       // Initialize the query with logical AND conditions
       query.$and = search.map((column) => {
         // Initialize each condition with logical AND conditions for multiple key-value pairs
