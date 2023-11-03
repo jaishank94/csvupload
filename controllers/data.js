@@ -92,10 +92,21 @@ exports.uploadData = async (req, res) => {
           schemaFields[key] = String; // You can set the data type as needed
         }
 
+        // Specify the fields that should be parsed as integers
+        const integerFields = [
+          "TotalFundingAmountMUSD",
+          "Valuation",
+          "LastFundingAmountMUSD",
+        ];
+
         // Update the schema with the new fields from the CSV
         const schema = Data.schema;
         for (const key in schemaFields) {
-          schema.add({ [key]: schemaFields[key] });
+          if (integerFields.includes(key)) {
+            schema.add({ [key]: Number });
+          } else {
+            schema.add({ [key]: schemaFields[key] });
+          }
         }
 
         const uniqueField = "name"; // Specify the field to determine uniqueness
