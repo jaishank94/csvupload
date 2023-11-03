@@ -9,23 +9,8 @@ const dataSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    data: {
-      type: String,
-    },
-    Employees: {
-      type: String,
-    },
-    Founded: {
-      type: Date,
-    },
-    Founders: {
-      type: String,
-    },
     Valuation: {
       type: Number,
-    },
-    Website: {
-      type: String,
     },
     LastFundingType: {
       type: String,
@@ -36,13 +21,13 @@ const dataSchema = new mongoose.Schema(
     LastFundingAmountMUSD: {
       type: Number,
     },
+    Founded: {
+      type: Date,
+    },
     Headquarters: {
       type: String,
     },
     Industries: {
-      type: String,
-    },
-    Description: {
       type: String,
     },
     TotalFundingAmountMUSD: {
@@ -51,6 +36,24 @@ const dataSchema = new mongoose.Schema(
     Investors: {
       type: String,
     },
+    Founders: {
+      type: String,
+    },
+    Employees: {
+      type: String,
+    },
+    data: {
+      type: String,
+    },
+
+    Website: {
+      type: String,
+    },
+
+    Description: {
+      type: String,
+    },
+
     category: {
       type: String,
     },
