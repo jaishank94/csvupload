@@ -13,7 +13,7 @@ const dataSchema = new mongoose.Schema(
       type: Number,
     },
     LastFundingType: {
-      type: Number,
+      type: String,
     },
     LastFundingDate: {
       type: Date,

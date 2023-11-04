@@ -69,6 +69,14 @@ exports.getData = async (req, res) => {
       },
     };
 
+    if (category) {
+      query.category = category;
+    }
+
+    if (subcategory) {
+      query.subcategory = subcategory;
+    }
+
     console.log("options", options);
     console.log("query", query);
 
