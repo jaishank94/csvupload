@@ -16,13 +16,13 @@ const dataSchema = new mongoose.Schema(
       type: String,
     },
     LastFundingDate: {
-      type: Date,
+      type: String,
     },
     LastFundingAmountMUSD: {
       type: Number,
     },
     Founded: {
-      type: Date,
+      type: String,
     },
     Headquarters: {
       type: String,
