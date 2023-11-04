@@ -41,14 +41,22 @@ exports.getData = async (req, res) => {
       req.body;
     const query = {};
 
+    const integerFields = [
+      "TotalFundingAmountMUSD",
+      "Valuation",
+      "LastFundingAmountMUSD",
+    ];
+
     if (search && Array.isArray(search) && search.length > 0) {
       // Initialize the query with logical AND conditions
       query.$and = search.map((column) => {
         // Initialize each condition with logical AND conditions for multiple key-value pairs
         return {
-          $and: Object.entries(column).map(([key, value]) => ({
-            [key]: { $regex: value, $options: "i" }, // Perform an exact match
-          })),
+          $and: Object.entries(column).map(([key, value]) => {
+            return integerFields.includes(key)
+              ? { [key]: { $gte: parseInt(value) } }
+              : { [key]: { $regex: value, $options: "i" } }; // Perform an exact match
+          }),
         };
       });
     }
