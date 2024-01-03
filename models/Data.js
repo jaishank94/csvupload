@@ -53,13 +53,16 @@ const dataSchema = new mongoose.Schema(
     Description: {
       type: String,
     },
-
-    category: {
-      type: String,
-    },
-    subcategory: {
-      type: String,
-    },
+    category: [
+      {
+        type: String,
+      },
+    ],
+    subcategory: [
+      {
+        type: String,
+      },
+    ],
     user: {
       type: ObjectId,
       ref: "User",

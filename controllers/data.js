@@ -69,12 +69,22 @@ exports.getData = async (req, res) => {
       },
     };
 
+    // if (category) {
+    //   query.category = category;
+    // }
+
+    // if (subcategory) {
+    //   query.subcategory = subcategory;
+    // }
+
     if (category) {
-      query.category = category;
+      query.category = { $in: Array.isArray(category) ? category : [category] };
     }
 
     if (subcategory) {
-      query.subcategory = subcategory;
+      query.subcategory = {
+        $in: Array.isArray(subcategory) ? subcategory : [subcategory],
+      };
     }
 
     console.log("options", options);
@@ -129,32 +139,38 @@ exports.uploadData = async (req, res) => {
 
         // await Data.insertMany(response);
 
-        const bulkOps = response.map((record) => ({
-          updateOne: {
-            filter: { [uniqueField]: record[uniqueField] },
-            update: { $set: record },
-            upsert: true, // Insert if not found, update if found
-          },
-        }));
+        // const bulkOps = response.map((record) => ({
+        //   updateOne: {
+        //     filter: { [uniqueField]: record[uniqueField] },
+        //     update: { $set: record },
+        //     upsert: true, // Insert if not found, update if found
+        //   },
+        // }));
+
+        const bulkOps = response.map((record) => {
+          // Modify category and subcategory fields to save as arrays split by comma
+          const updatedRecord = {
+            ...record,
+            category: record.category ? record.category.split(",") : [],
+            subcategory: record.subcategory
+              ? record.subcategory.split(",")
+              : [],
+          };
+          return {
+            updateOne: {
+              filter: { [uniqueField]: record[uniqueField] },
+              update: { $set: updatedRecord },
+              upsert: true,
+            },
+          };
+        });
 
         // Find and delete records that are not present in the CSV
         const uniqueValuesInCSV = response.map((record) => record[uniqueField]);
         await Data.deleteMany({ [uniqueField]: { $nin: uniqueValuesInCSV } });
 
         await Data.bulkWrite(bulkOps);
-        // let i = 1;
-        // for (const record of response) {
-        //   console.log(record);
-        //   // Create or update the data entry
-        //   await Data.updateOne(
-        //     { [uniqueField]: record[uniqueField] }, // Replace with your unique field
-        //     { $set: record },
-        //     { upsert: true }
-        //   );
 
-        //   // Process the data and handle categories and sub-categories
-        //   i++;
-        // }
         await CategoryController.processData(response);
         res.status(200).send("CSV data uploaded successfully.");
       });
