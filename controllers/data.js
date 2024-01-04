@@ -171,7 +171,6 @@ exports.uploadData = async (req, res) => {
         await Data.deleteMany({ [uniqueField]: { $nin: uniqueValuesInCSV } });
 
         await Data.bulkWrite(bulkOps);
-
         await CategoryController.processData(response);
         res.status(200).send("CSV data uploaded successfully.");
       });
