@@ -128,6 +128,7 @@ exports.uploadData = async (req, res) => {
         // Update the schema with the new fields from the CSV
         const schema = Data.schema;
         for (const key in schemaFields) {
+          if (key === "category" || key === "subcategory") continue;
           if (integerFields.includes(key)) {
             schema.add({ [key]: Number });
           } else {

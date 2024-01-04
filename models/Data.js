@@ -45,24 +45,14 @@ const dataSchema = new mongoose.Schema(
     data: {
       type: String,
     },
-
     Website: {
       type: String,
     },
-
     Description: {
       type: String,
     },
-    category: [
-      {
-        type: String,
-      },
-    ],
-    subcategory: [
-      {
-        type: String,
-      },
-    ],
+    category: [String],
+    subcategory: [String],
     user: {
       type: ObjectId,
       ref: "User",
