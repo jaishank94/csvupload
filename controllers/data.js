@@ -152,9 +152,13 @@ exports.uploadData = async (req, res) => {
           // Modify category and subcategory fields to save as arrays split by comma
           const updatedRecord = {
             ...record,
-            category: record.category ? record.category.split(",") : [],
+            category: record.category
+              ? record.category.split(",").map((category) => category.trim())
+              : [],
             subcategory: record.subcategory
-              ? record.subcategory.split(",")
+              ? record.subcategory
+                  .split(",")
+                  .map((subcategory) => subcategory.trim())
               : [],
           };
           return {
