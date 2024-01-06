@@ -69,22 +69,14 @@ exports.getData = async (req, res) => {
       },
     };
 
-    // if (category) {
-    //   query.category = category;
-    // }
-
-    // if (subcategory) {
-    //   query.subcategory = subcategory;
-    // }
-
     if (category) {
-      query.category = { $in: Array.isArray(category) ? category : [category] };
+      // query.category = category;
+      query.category = { $in: category.split(",") };
     }
 
     if (subcategory) {
-      query.subcategory = {
-        $in: Array.isArray(subcategory) ? subcategory : [subcategory],
-      };
+      // query.subcategory = subcategory;
+      query.subcategory = { $in: subcategory.split(",") };
     }
 
     console.log("options", options);
@@ -92,9 +84,13 @@ exports.getData = async (req, res) => {
 
     const result = await Data.paginate(query, options);
 
-    // Add total count to the result object
+    // Ensure the pagination starts at the correct point based on the page number
     const totalCount = await Data.countDocuments(query);
+    const totalPages = Math.ceil(totalCount / options.limit);
+
     result.totalCount = totalCount;
+    result.currentPage = options.page;
+    result.totalPages = totalPages;
 
     res.json(result);
   } catch (error) {

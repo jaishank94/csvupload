@@ -17,35 +17,6 @@ exports.processData = async (records) => {
       allSubcategories.push(...subcategories);
 
       for (const category of categories) {
-        // const category = await Category.findOne({ name: record.category });
-        // if (category) {
-        //   // Category exists, check and update sub-category
-        //   const subCategoryIndex = category.subCategories.findIndex(
-        //     (sub) => sub.name === record.subcategory
-        //   );
-        //   if (subCategoryIndex !== -1) {
-        //     // Sub-category exists, update it
-        //     category.subCategories[subCategoryIndex].name = record.subcategory;
-        //   } else {
-        //     // Sub-category doesn't exist, delete it if found
-        //     const subCategoryToRemove = category.subCategories.find(
-        //       (sub) => sub.name === record.subcategory
-        //     );
-        //     if (subCategoryToRemove) {
-        //       category.subCategories.pull(subCategoryToRemove);
-        //     }
-        //     // Create a new sub-category entry
-        //     category.subCategories.push({ name: record.subcategory });
-        //   }
-        //   await category.save();
-        // } else {
-        //   // Category doesn't exist, create it and sub-category
-        //   const newCategory = new Category({
-        //     name: record.category,
-        //     subCategories: [{ name: record.subcategory }],
-        //   });
-        //   await newCategory.save();
-        // }
         const existingCategory = await Category.findOne({ name: category });
         if (existingCategory) {
           // Category exists, update or add sub-categories
@@ -62,12 +33,6 @@ exports.processData = async (records) => {
               existingCategory.subCategories.push({ name: subcategory });
             }
           }
-
-          // Remove sub-categories that are not present in the current data
-          // existingCategory.subCategories =
-          //   existingCategory.subCategories.filter((sub) =>
-          //     subcategories.includes(sub.name)
-          //   );
 
           await existingCategory.save();
         } else {
