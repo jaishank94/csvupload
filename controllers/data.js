@@ -64,9 +64,9 @@ exports.getData = async (req, res) => {
     const options = {
       page: parseInt(page) || 1,
       limit: parseInt(limit) || 10,
-      sort: {
-        [sortField || "Valuation"]: -1,
-      },
+      // sort: {
+      //   [sortField || "Valuation"]: -1,
+      // },
     };
 
     if (category) {
